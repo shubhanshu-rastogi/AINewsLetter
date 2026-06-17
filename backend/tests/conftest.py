@@ -55,3 +55,18 @@ async def session(engine) -> AsyncIterator[AsyncSession]:
     maker = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
     async with maker() as db_session:
         yield db_session
+
+
+@pytest.fixture
+def session_factory(engine):
+    return async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
+
+
+@pytest_asyncio.fixture
+async def workflow_service(session_factory):
+    from langgraph.checkpoint.memory import MemorySaver
+
+    from app.workflows.graph import build_newsletter_graph
+    from app.workflows.service import WorkflowService
+
+    return WorkflowService(build_newsletter_graph(checkpointer=MemorySaver()), session_factory)

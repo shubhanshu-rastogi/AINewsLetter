@@ -15,6 +15,7 @@ from fastapi import FastAPI
 from app import __version__
 from app.api.health import router as health_router
 from app.api.v1.router import api_router
+from app.api.workflows import router as workflows_router
 from app.core.config import settings
 from app.core.logging import configure_logging, get_logger
 from app.db.session import dispose_engine
@@ -63,6 +64,7 @@ def create_app() -> FastAPI:
     # Routers
     app.include_router(health_router)
     app.include_router(api_router, prefix=settings.API_V1_PREFIX)
+    app.include_router(workflows_router, prefix="/api/workflows")
 
     return app
 
