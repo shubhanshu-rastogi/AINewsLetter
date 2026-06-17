@@ -167,7 +167,17 @@ async def _start(state: WorkflowState) -> dict[str, Any]:
 
 
 async def _source_collection(state: WorkflowState) -> dict[str, Any]:
-    return {"collected_article_ids": ["article-stub-1", "article-stub-2", "article-stub-3"]}
+    """Collect content from active sources via the SourceCollectionAgent.
+
+    Reads active sources (prioritized by the strategy layer), runs collection,
+    persists articles, and records the new article ids on the state. Individual
+    source failures are handled inside the agent and do not fail the workflow.
+    """
+    from app.agents.source_collection.collector import SourceCollectionAgent
+
+    agent = SourceCollectionAgent(get_session_factory())
+    article_ids = await agent.collect_all_sources()
+    return {"collected_article_ids": article_ids}
 
 
 async def _relevance_filter(state: WorkflowState) -> dict[str, Any]:

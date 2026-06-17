@@ -13,7 +13,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app import __version__
+from app.api.articles import router as articles_router
 from app.api.health import router as health_router
+from app.api.sources import router as sources_router
 from app.api.v1.router import api_router
 from app.api.workflows import router as workflows_router
 from app.core.config import settings
@@ -35,8 +37,16 @@ async def lifespan(_: FastAPI):
         version=__version__,
         environment=settings.APP_ENV,
     )
+    if settings.ENABLE_SCHEDULER:
+        from app.agents.source_collection.scheduler import scheduler
+
+        scheduler.start()
     yield
     # ---- shutdown ----
+    if settings.ENABLE_SCHEDULER:
+        from app.agents.source_collection.scheduler import scheduler
+
+        scheduler.shutdown()
     await dispose_engine()
     logger.info("application_shutdown")
 
@@ -65,6 +75,8 @@ def create_app() -> FastAPI:
     app.include_router(health_router)
     app.include_router(api_router, prefix=settings.API_V1_PREFIX)
     app.include_router(workflows_router, prefix="/api/workflows")
+    app.include_router(sources_router, prefix="/api/sources")
+    app.include_router(articles_router, prefix="/api/articles")
 
     return app
 

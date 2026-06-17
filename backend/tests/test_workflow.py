@@ -23,11 +23,10 @@ async def test_all_nodes_execute_up_to_human_review(
     result = await workflow_service.start_newsletter_workflow()
     state = result["state"]
 
-    # Pipeline produced placeholder outputs at each stage.
-    assert state["collected_article_ids"]
-    assert state["selected_article_ids"]
-    assert state["category_map"]
-    assert state["fact_check_results"]
+    # With no seeded sources, collection yields an empty (but present) list;
+    # downstream placeholder nodes still run. See test_source_collection for the
+    # node->agent->DB integration path with seeded sources.
+    assert isinstance(state["collected_article_ids"], list)
     assert state["newsletter_draft"] is not None
     assert state["linkedin_draft"] is not None
     assert state["visual_ids"]

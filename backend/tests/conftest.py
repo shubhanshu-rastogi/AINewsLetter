@@ -20,8 +20,13 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.pool import StaticPool
 
-from app.db.base import Base
-from app.main import app
+from app.core.config import settings
+
+# Disable the background scheduler during tests (started in the app lifespan).
+settings.ENABLE_SCHEDULER = False
+
+from app.db.base import Base  # noqa: E402
+from app.main import app  # noqa: E402
 
 
 @pytest.fixture(scope="session")

@@ -20,19 +20,39 @@ class UserRole(StrEnum):
 class SourceType(StrEnum):
     RSS = "rss"
     BLOG = "blog"
-    NEWS = "news"
-    GITHUB = "github"
-    PAPER = "paper"
-    REPORT = "report"
+    WEBSITE = "website"
+    DOCUMENTATION = "documentation"
+    RESEARCH = "research"
+    BENCHMARK = "benchmark"
+    NEWSLETTER = "newsletter"
+    TREND_SIGNAL = "trend_signal"
+    ENTERPRISE_REPORT = "enterprise_report"
 
 
 class ArticleStatus(StrEnum):
     NEW = "new"
-    FILTERED = "filtered"
-    RELEVANT = "relevant"
-    CATEGORIZED = "categorized"
-    REJECTED = "rejected"
-    USED = "used"
+    PROCESSED = "processed"
+    DUPLICATE = "duplicate"
+    FAILED = "failed"
+
+
+class CollectionMethod(StrEnum):
+    RSS = "rss"
+    WEB = "web"
+    DOCUMENTATION = "documentation"
+    RESEARCH = "research"
+    NEWSLETTER = "newsletter"
+
+
+class NewsletterSection(StrEnum):
+    AGENTIC_AI_ENGINEERING = "Agentic AI Engineering"
+    AI_EVALUATION_QA_GATES = "AI Evaluation & QA Gates"
+    AI_TESTING_QUALITY = "AI Testing & Quality Engineering"
+    ENTERPRISE_AI_ADOPTION = "Enterprise AI Adoption"
+    AI_TOOLS_WATCH = "AI Tools Worth Watching"
+    RESEARCH_WATCH = "Research Watch"
+    CODING_AGENT_BENCHMARK = "Coding Agent Benchmark Watch"
+    WEEKLY_TREND_SIGNALS = "Weekly Trend Signals"
 
 
 class NewsletterStatus(StrEnum):

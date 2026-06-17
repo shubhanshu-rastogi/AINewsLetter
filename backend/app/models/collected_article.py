@@ -1,8 +1,8 @@
 """CollectedArticle model - a normalized ingested article.
 
-Note: ``category_id`` is an added nullable FK (not in the bare field list) so
-categorization has a concrete one-to-many link (category -> articles). It is
-nullable because an article is uncategorized when first collected.
+``category_id`` links to the (future) classification taxonomy. The
+``source_*`` / ``newsletter_section`` / score columns are denormalized hints
+captured at collection time from the source strategy.
 """
 
 from __future__ import annotations
@@ -11,12 +11,12 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, ForeignKey, String, Text
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base_class import Base
 from app.db.types import str_enum
-from app.models.enums import ArticleStatus
+from app.models.enums import ArticleStatus, CollectionMethod, NewsletterSection
 from app.models.mixins import TimestampMixin, UUIDMixin
 
 if TYPE_CHECKING:
@@ -50,6 +50,20 @@ class CollectedArticle(UUIDMixin, TimestampMixin, Base):
         nullable=False,
         index=True,
     )
+
+    # Collection metadata / strategy hints
+    content_hash: Mapped[str | None] = mapped_column(String(64), index=True)
+    source_priority: Mapped[int | None] = mapped_column(Integer)
+    source_category: Mapped[str | None] = mapped_column(String(120))
+    newsletter_section: Mapped[NewsletterSection | None] = mapped_column(
+        str_enum(NewsletterSection, "article_newsletter_section", length=64)
+    )
+    collection_method: Mapped[CollectionMethod | None] = mapped_column(
+        str_enum(CollectionMethod, "article_collection_method")
+    )
+    credibility_score: Mapped[float | None] = mapped_column(Float)
+    freshness_score: Mapped[float | None] = mapped_column(Float)
+    relevance_hint: Mapped[str | None] = mapped_column(Text)
 
     source: Mapped["ContentSource"] = relationship(back_populates="articles", lazy="selectin")
     category: Mapped["ArticleCategory | None"] = relationship(

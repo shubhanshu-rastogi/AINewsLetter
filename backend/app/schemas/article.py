@@ -7,20 +7,11 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
-from app.models.enums import ArticleStatus
+from app.models.enums import ArticleStatus, CollectionMethod, NewsletterSection
 from app.schemas.common import ORMModel
 
 
 # --- Category ---
-class CategoryBase(BaseModel):
-    name: str = Field(..., min_length=1, max_length=100)
-    description: str | None = None
-
-
-class CategoryCreate(CategoryBase):
-    pass
-
-
 class CategoryRead(ORMModel):
     id: uuid.UUID
     name: str
@@ -28,10 +19,6 @@ class CategoryRead(ORMModel):
 
 
 # --- Tag ---
-class TagCreate(BaseModel):
-    tag_name: str = Field(..., min_length=1, max_length=100)
-
-
 class TagRead(ORMModel):
     id: uuid.UUID
     article_id: uuid.UUID
@@ -39,38 +26,38 @@ class TagRead(ORMModel):
 
 
 # --- Article ---
-class ArticleBase(BaseModel):
-    source_id: uuid.UUID
-    category_id: uuid.UUID | None = None
-    title: str = Field(..., min_length=1, max_length=1024)
-    url: str = Field(..., min_length=1, max_length=2048)
-    author: str | None = Field(default=None, max_length=255)
-    published_date: datetime | None = None
-    raw_content: str | None = None
-    summary: str | None = None
-    status: ArticleStatus = ArticleStatus.NEW
-
-
-class ArticleCreate(ArticleBase):
-    pass
-
-
-class ArticleUpdate(BaseModel):
-    category_id: uuid.UUID | None = None
-    title: str | None = Field(default=None, min_length=1, max_length=1024)
-    summary: str | None = None
-    status: ArticleStatus | None = None
-
-
 class ArticleRead(ORMModel):
     id: uuid.UUID
     source_id: uuid.UUID
-    category_id: uuid.UUID | None
     title: str
     url: str
     author: str | None
     published_date: datetime | None
     summary: str | None
     status: ArticleStatus
+    content_hash: str | None
+    source_priority: int | None
+    source_category: str | None
+    newsletter_section: NewsletterSection | None
+    collection_method: CollectionMethod | None
+    credibility_score: float | None
+    freshness_score: float | None
     created_at: datetime
-    updated_at: datetime
+
+
+class ArticleDetail(ArticleRead):
+    raw_content: str | None
+    relevance_hint: str | None
+
+
+# --- Statistics ---
+class ArticleStats(BaseModel):
+    total_sources: int
+    active_sources: int
+    total_articles: int
+    duplicates: int
+    failed_collections: int
+    last_collection_time: str | None = None
+    articles_by_category: dict[str, int] = Field(default_factory=dict)
+    articles_by_newsletter_section: dict[str, int] = Field(default_factory=dict)
+    articles_by_source_priority: dict[str, int] = Field(default_factory=dict)

@@ -1,8 +1,8 @@
-"""initial schema
+"""initial schema with collection fields
 
-Revision ID: 79eb3e50b81e
+Revision ID: 250f42812eb5
 Revises: 
-Create Date: 2026-06-16 23:29:48.172037
+Create Date: 2026-06-17 12:39:07.953777
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '79eb3e50b81e'
+revision: str = '250f42812eb5'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -33,17 +33,28 @@ def upgrade() -> None:
 
     op.create_table('content_sources',
     sa.Column('source_name', sa.String(length=255), nullable=False),
-    sa.Column('source_type', sa.Enum('rss', 'blog', 'news', 'github', 'paper', 'report', name='source_type', native_enum=False, length=50), nullable=False),
+    sa.Column('source_type', sa.Enum('rss', 'blog', 'website', 'documentation', 'research', 'benchmark', 'newsletter', 'trend_signal', 'enterprise_report', name='source_type', native_enum=False, length=50), nullable=False),
     sa.Column('source_url', sa.String(length=2048), nullable=False),
     sa.Column('rss_url', sa.String(length=2048), nullable=True),
     sa.Column('is_active', sa.Boolean(), nullable=False),
+    sa.Column('category', sa.String(length=120), nullable=True),
+    sa.Column('best_use', sa.Text(), nullable=True),
+    sa.Column('priority', sa.Integer(), nullable=False),
+    sa.Column('credibility_score', sa.Float(), nullable=False),
+    sa.Column('freshness_score', sa.Float(), nullable=False),
+    sa.Column('relevance_score', sa.Float(), nullable=False),
+    sa.Column('preferred_collection_method', sa.Enum('rss', 'web', 'documentation', 'research', 'newsletter', name='preferred_collection_method', native_enum=False, length=50), nullable=False),
+    sa.Column('fallback_collection_method', sa.Enum('rss', 'web', 'documentation', 'research', 'newsletter', name='fallback_collection_method', native_enum=False, length=50), nullable=True),
+    sa.Column('newsletter_section', sa.Enum('Agentic AI Engineering', 'AI Evaluation & QA Gates', 'AI Testing & Quality Engineering', 'Enterprise AI Adoption', 'AI Tools Worth Watching', 'Research Watch', 'Coding Agent Benchmark Watch', 'Weekly Trend Signals', name='source_newsletter_section', native_enum=False, length=64), nullable=True),
     sa.Column('id', sa.Uuid(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_content_sources'))
     )
     with op.batch_alter_table('content_sources', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_content_sources_category'), ['category'], unique=False)
         batch_op.create_index(batch_op.f('ix_content_sources_is_active'), ['is_active'], unique=False)
+        batch_op.create_index(batch_op.f('ix_content_sources_priority'), ['priority'], unique=False)
         batch_op.create_index(batch_op.f('ix_content_sources_source_type'), ['source_type'], unique=False)
 
     op.create_table('newsletters',
@@ -93,7 +104,15 @@ def upgrade() -> None:
     sa.Column('published_date', sa.DateTime(timezone=True), nullable=True),
     sa.Column('raw_content', sa.Text(), nullable=True),
     sa.Column('summary', sa.Text(), nullable=True),
-    sa.Column('status', sa.Enum('new', 'filtered', 'relevant', 'categorized', 'rejected', 'used', name='article_status', native_enum=False, length=50), nullable=False),
+    sa.Column('status', sa.Enum('new', 'processed', 'duplicate', 'failed', name='article_status', native_enum=False, length=50), nullable=False),
+    sa.Column('content_hash', sa.String(length=64), nullable=True),
+    sa.Column('source_priority', sa.Integer(), nullable=True),
+    sa.Column('source_category', sa.String(length=120), nullable=True),
+    sa.Column('newsletter_section', sa.Enum('Agentic AI Engineering', 'AI Evaluation & QA Gates', 'AI Testing & Quality Engineering', 'Enterprise AI Adoption', 'AI Tools Worth Watching', 'Research Watch', 'Coding Agent Benchmark Watch', 'Weekly Trend Signals', name='article_newsletter_section', native_enum=False, length=64), nullable=True),
+    sa.Column('collection_method', sa.Enum('rss', 'web', 'documentation', 'research', 'newsletter', name='article_collection_method', native_enum=False, length=50), nullable=True),
+    sa.Column('credibility_score', sa.Float(), nullable=True),
+    sa.Column('freshness_score', sa.Float(), nullable=True),
+    sa.Column('relevance_hint', sa.Text(), nullable=True),
     sa.Column('id', sa.Uuid(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
@@ -104,6 +123,7 @@ def upgrade() -> None:
     )
     with op.batch_alter_table('collected_articles', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_collected_articles_category_id'), ['category_id'], unique=False)
+        batch_op.create_index(batch_op.f('ix_collected_articles_content_hash'), ['content_hash'], unique=False)
         batch_op.create_index(batch_op.f('ix_collected_articles_published_date'), ['published_date'], unique=False)
         batch_op.create_index(batch_op.f('ix_collected_articles_source_id'), ['source_id'], unique=False)
         batch_op.create_index(batch_op.f('ix_collected_articles_status'), ['status'], unique=False)
@@ -281,6 +301,7 @@ def downgrade() -> None:
         batch_op.drop_index(batch_op.f('ix_collected_articles_status'))
         batch_op.drop_index(batch_op.f('ix_collected_articles_source_id'))
         batch_op.drop_index(batch_op.f('ix_collected_articles_published_date'))
+        batch_op.drop_index(batch_op.f('ix_collected_articles_content_hash'))
         batch_op.drop_index(batch_op.f('ix_collected_articles_category_id'))
 
     op.drop_table('collected_articles')
@@ -299,7 +320,9 @@ def downgrade() -> None:
     op.drop_table('newsletters')
     with op.batch_alter_table('content_sources', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_content_sources_source_type'))
+        batch_op.drop_index(batch_op.f('ix_content_sources_priority'))
         batch_op.drop_index(batch_op.f('ix_content_sources_is_active'))
+        batch_op.drop_index(batch_op.f('ix_content_sources_category'))
 
     op.drop_table('content_sources')
     with op.batch_alter_table('article_categories', schema=None) as batch_op:

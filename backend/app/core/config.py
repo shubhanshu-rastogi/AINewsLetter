@@ -62,6 +62,17 @@ class Settings(BaseSettings):
     NOTION_API_KEY: str | None = None
 
     # ------------------------------------------------------------------ #
+    # Source collection
+    # ------------------------------------------------------------------ #
+    COLLECTION_TIMEOUT: float = 20.0  # seconds per HTTP request
+    MAX_RETRIES: int = 3
+    RSS_BATCH_SIZE: int = 25
+    RESEARCH_BATCH_SIZE: int = 15
+    NEWSLETTER_BATCH_SIZE: int = 15
+    ENABLE_SCHEDULER: bool = True
+    RESPECT_ROBOTS_TXT: bool = True
+
+    # ------------------------------------------------------------------ #
     # Derived values
     # ------------------------------------------------------------------ #
     @property
