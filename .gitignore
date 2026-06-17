@@ -1,0 +1,14 @@
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Claude Code local session/memory
+.claude/
+
+# Python (see backend/.gitignore for backend-specific rules)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
