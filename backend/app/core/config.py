@@ -73,6 +73,20 @@ class Settings(BaseSettings):
     RESPECT_ROBOTS_TXT: bool = True
 
     # ------------------------------------------------------------------ #
+    # Relevance / categorization
+    # ------------------------------------------------------------------ #
+    ENABLE_LLM_CLASSIFICATION: bool = False
+    LLM_PROVIDER: str = "anthropic"  # anthropic | openai
+    LLM_MODEL: str = "claude-haiku-4-5-20251001"
+
+    # ------------------------------------------------------------------ #
+    # Fact checking
+    # ------------------------------------------------------------------ #
+    FACT_CHECK_VERIFY_URLS: bool = True
+    ENABLE_LLM_FACTCHECK: bool = False
+    MAX_CLAIMS_PER_ARTICLE: int = 10
+
+    # ------------------------------------------------------------------ #
     # Derived values
     # ------------------------------------------------------------------ #
     @property

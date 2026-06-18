@@ -11,7 +11,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Integer, String, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base_class import Base
@@ -22,7 +22,11 @@ from app.models.mixins import TimestampMixin, UUIDMixin
 if TYPE_CHECKING:
     from app.models.article_category import ArticleCategory
     from app.models.article_tag import ArticleTag
+    from app.models.citation import Citation
     from app.models.content_source import ContentSource
+    from app.models.evidence_package import EvidencePackage
+    from app.models.fact_check_result import FactCheckResult
+    from app.models.verified_claim import VerifiedClaim
 
 
 class CollectedArticle(UUIDMixin, TimestampMixin, Base):
@@ -65,6 +69,32 @@ class CollectedArticle(UUIDMixin, TimestampMixin, Base):
     freshness_score: Mapped[float | None] = mapped_column(Float)
     relevance_hint: Mapped[str | None] = mapped_column(Text)
 
+    # Relevance scoring (0-100 per dimension)
+    newsletter_relevance_score: Mapped[float | None] = mapped_column(Float)
+    technical_depth_score: Mapped[float | None] = mapped_column(Float)
+    enterprise_value_score: Mapped[float | None] = mapped_column(Float)
+    qa_value_score: Mapped[float | None] = mapped_column(Float)
+    trend_signal_score: Mapped[float | None] = mapped_column(Float)
+    overall_relevance_score: Mapped[float | None] = mapped_column(Float, index=True)
+
+    # Deduplication / story grouping
+    canonical_story_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, index=True)
+
+    # Classification
+    primary_category: Mapped[str | None] = mapped_column(String(120))
+    secondary_category: Mapped[str | None] = mapped_column(String(120))
+    topics: Mapped[list | None] = mapped_column(JSON)
+    keywords: Mapped[list | None] = mapped_column(JSON)
+
+    # Ranking / selection
+    ranking_position: Mapped[int | None] = mapped_column(Integer, index=True)
+    is_selected: Mapped[bool] = mapped_column(Boolean, default=False, nullable=True, index=True)
+
+    # Fact-check summary (denormalized for filtering / workflow state)
+    verification_status: Mapped[str | None] = mapped_column(String(30), index=True)
+    overall_confidence_score: Mapped[float | None] = mapped_column(Float)
+    verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
     source: Mapped["ContentSource"] = relationship(back_populates="articles", lazy="selectin")
     category: Mapped["ArticleCategory | None"] = relationship(
         back_populates="articles", lazy="selectin"
@@ -73,4 +103,16 @@ class CollectedArticle(UUIDMixin, TimestampMixin, Base):
         back_populates="article",
         cascade="all, delete-orphan",
         lazy="selectin",
+    )
+    citations: Mapped[list["Citation"]] = relationship(
+        back_populates="article", cascade="all, delete-orphan", lazy="selectin"
+    )
+    verified_claims: Mapped[list["VerifiedClaim"]] = relationship(
+        back_populates="article", cascade="all, delete-orphan", lazy="selectin"
+    )
+    fact_check_result: Mapped["FactCheckResult | None"] = relationship(
+        back_populates="article", cascade="all, delete-orphan", uselist=False, lazy="selectin"
+    )
+    evidence_package: Mapped["EvidencePackage | None"] = relationship(
+        back_populates="article", cascade="all, delete-orphan", uselist=False, lazy="selectin"
     )

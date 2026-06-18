@@ -24,6 +24,8 @@ from app.core.config import settings
 
 # Disable the background scheduler during tests (started in the app lifespan).
 settings.ENABLE_SCHEDULER = False
+# Keep fact-checking offline by default (no real URL HEAD requests).
+settings.FACT_CHECK_VERIFY_URLS = False
 
 from app.db.base import Base  # noqa: E402
 from app.main import app  # noqa: E402

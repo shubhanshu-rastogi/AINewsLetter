@@ -42,12 +42,26 @@ class ArticleRead(ORMModel):
     collection_method: CollectionMethod | None
     credibility_score: float | None
     freshness_score: float | None
+    # Relevance / classification
+    overall_relevance_score: float | None
+    ranking_position: int | None
+    is_selected: bool | None
+    primary_category: str | None
+    secondary_category: str | None
+    topics: list[str] | None
+    keywords: list[str] | None
+    canonical_story_id: uuid.UUID | None
     created_at: datetime
 
 
 class ArticleDetail(ArticleRead):
     raw_content: str | None
     relevance_hint: str | None
+    newsletter_relevance_score: float | None
+    technical_depth_score: float | None
+    enterprise_value_score: float | None
+    qa_value_score: float | None
+    trend_signal_score: float | None
 
 
 # --- Statistics ---

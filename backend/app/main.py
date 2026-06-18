@@ -14,6 +14,7 @@ from fastapi import FastAPI
 
 from app import __version__
 from app.api.articles import router as articles_router
+from app.api.facts import router as facts_router
 from app.api.health import router as health_router
 from app.api.sources import router as sources_router
 from app.api.v1.router import api_router
@@ -77,6 +78,7 @@ def create_app() -> FastAPI:
     app.include_router(workflows_router, prefix="/api/workflows")
     app.include_router(sources_router, prefix="/api/sources")
     app.include_router(articles_router, prefix="/api/articles")
+    app.include_router(facts_router, prefix="/api/facts")
 
     return app
 

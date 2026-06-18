@@ -181,26 +181,36 @@ async def _source_collection(state: WorkflowState) -> dict[str, Any]:
 
 
 async def _relevance_filter(state: WorkflowState) -> dict[str, Any]:
-    collected = state.get("collected_article_ids") or []
-    return {"selected_article_ids": collected[:2]}
+    """Score, dedup, rank, and select the collected articles."""
+    from app.agents.relevance_filter.filter_agent import RelevanceFilterAgent
+
+    agent = RelevanceFilterAgent(get_session_factory())
+    result = await agent.run(state.get("collected_article_ids") or [])
+    return {
+        "selected_article_ids": result["selected_article_ids"],
+        "category_map": result["category_map"],
+    }
 
 
 async def _categorization(state: WorkflowState) -> dict[str, Any]:
-    selected = state.get("selected_article_ids") or []
-    category_map: dict[str, list[str]] = {}
-    if selected:
-        category_map["AI News"] = selected[:1]
-    if len(selected) > 1:
-        category_map["AI Tools"] = selected[1:2]
-    return {"category_map": category_map}
+    """Classify and tag the selected articles, refining the category map."""
+    from app.agents.categorization.categorization_agent import CategorizationAgent
+
+    agent = CategorizationAgent(get_session_factory())
+    result = await agent.run(state.get("selected_article_ids") or [])
+    return {"category_map": result["category_map"]}
 
 
 async def _fact_check(state: WorkflowState) -> dict[str, Any]:
-    selected = state.get("selected_article_ids") or []
-    results = [
-        {"article_id": aid, "verdict": "unverified", "sources": []} for aid in selected
-    ]
-    return {"fact_check_results": results}
+    """Verify selected articles, build evidence, and drop REJECTED ones."""
+    from app.agents.fact_checking.fact_check_agent import FactCheckAgent
+
+    agent = FactCheckAgent(get_session_factory())
+    result = await agent.run(state.get("selected_article_ids") or [])
+    return {
+        "fact_check_results": result["fact_check_results"],
+        "selected_article_ids": result["selected_article_ids"],  # rejected removed
+    }
 
 
 async def _newsletter_writer(state: WorkflowState) -> dict[str, Any]:

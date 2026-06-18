@@ -11,8 +11,11 @@ from app.models import (  # noqa: F401
     AgentRun,
     ArticleCategory,
     ArticleTag,
+    Citation,
     CollectedArticle,
     ContentSource,
+    EvidencePackage,
+    FactCheckResult,
     FeedbackItem,
     GeneratedVisual,
     Newsletter,
@@ -21,6 +24,7 @@ from app.models import (  # noqa: F401
     ReviewSession,
     SystemSetting,
     User,
+    VerifiedClaim,
     WorkflowRun,
 )
 

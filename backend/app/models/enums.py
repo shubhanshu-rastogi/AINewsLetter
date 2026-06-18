@@ -113,3 +113,36 @@ class ExecutionStatus(StrEnum):
     SUCCESS = "success"
     FAILED = "failed"
     SKIPPED = "skipped"
+
+
+class VerificationStatus(StrEnum):
+    """Fact-check verdict for an article (drives publication eligibility)."""
+
+    VERIFIED = "verified"  # confidence >= 90
+    REVIEW_REQUIRED = "review_required"  # 70-89
+    LOW_CONFIDENCE = "low_confidence"  # 50-69
+    REJECTED = "rejected"  # < 50 (cannot proceed)
+    PENDING = "pending"
+
+
+class ClaimVerification(StrEnum):
+    SUPPORTED = "supported"
+    PARTIALLY_SUPPORTED = "partially_supported"
+    UNVERIFIED = "unverified"
+    CONTRADICTED = "contradicted"
+
+
+class ClaimType(StrEnum):
+    FACT = "fact"
+    STATISTIC = "statistic"
+    METRIC = "metric"
+    BENCHMARK = "benchmark"
+    PRODUCT_LAUNCH = "product_launch"
+    RELEASE = "release"
+    EVALUATION = "evaluation"
+
+
+class TrustTier(StrEnum):
+    HIGH = "high"
+    MEDIUM = "medium"
+    LOW = "low"
