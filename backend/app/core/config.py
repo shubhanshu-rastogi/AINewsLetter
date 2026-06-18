@@ -87,6 +87,17 @@ class Settings(BaseSettings):
     MAX_CLAIMS_PER_ARTICLE: int = 10
 
     # ------------------------------------------------------------------ #
+    # Newsletter writer / brand
+    # ------------------------------------------------------------------ #
+    NEWSLETTER_NAME: str = "AI & Quality Engineering Weekly"
+    NEWSLETTER_TAGLINE: str = (
+        "Practical AI insights for QA Leaders, Test Managers, "
+        "Engineering Leaders, and IT Professionals."
+    )
+    ENABLE_LLM_WRITER: bool = False
+    MIN_CONFIDENCE_FOR_PUBLISH: float = 90.0
+
+    # ------------------------------------------------------------------ #
     # Derived values
     # ------------------------------------------------------------------ #
     @property

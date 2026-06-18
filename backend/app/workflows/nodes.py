@@ -214,16 +214,25 @@ async def _fact_check(state: WorkflowState) -> dict[str, Any]:
 
 
 async def _newsletter_writer(state: WorkflowState) -> dict[str, Any]:
-    issue = state.get("issue_number")
-    draft = {
-        "subject": f"Weekly AI Newsletter - Issue {issue}",
-        "sections": [{"heading": k, "body": "placeholder"} for k in (state.get("category_map") or {})],
+    """Generate the newsletter (+ LinkedIn + carousel) from verified articles."""
+    from app.agents.newsletter_writer.writer_agent import NewsletterWriterAgent
+
+    agent = NewsletterWriterAgent(get_session_factory())
+    result = await agent.generate_newsletter(
+        article_ids=state.get("selected_article_ids") or [],
+        newsletter_id=state.get("newsletter_id"),
+    )
+    return {
+        "newsletter_draft": result["content"],
+        "linkedin_draft": {"body": result["linkedin_post"], "carousel": result["carousel"]},
     }
-    return {"newsletter_draft": draft}
 
 
 async def _linkedin_writer(state: WorkflowState) -> dict[str, Any]:
-    return {"linkedin_draft": {"text": "placeholder LinkedIn post", "hashtags": ["#AI"]}}
+    # The newsletter writer already produced LinkedIn content; preserve it.
+    if state.get("linkedin_draft"):
+        return {}
+    return {"linkedin_draft": {"body": "placeholder LinkedIn post"}}
 
 
 async def _visual_generation(state: WorkflowState) -> dict[str, Any]:

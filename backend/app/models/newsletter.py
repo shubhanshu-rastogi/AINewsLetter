@@ -14,9 +14,14 @@ from app.models.enums import NewsletterStatus
 from app.models.mixins import TimestampMixin, UUIDMixin
 
 if TYPE_CHECKING:
+    from app.models.carousel_outline import CarouselOutline
     from app.models.generated_visual import GeneratedVisual
+    from app.models.linkedin_post import LinkedInPost
+    from app.models.newsletter_draft import NewsletterDraft
     from app.models.newsletter_section import NewsletterSection
+    from app.models.newsletter_version import NewsletterVersion
     from app.models.publication_record import PublicationRecord
+    from app.models.regeneration_history import RegenerationHistory
     from app.models.review_session import ReviewSession
     from app.models.workflow_run import WorkflowRun
 
@@ -49,4 +54,19 @@ class Newsletter(UUIDMixin, TimestampMixin, Base):
     )
     workflow_runs: Mapped[list["WorkflowRun"]] = relationship(
         back_populates="newsletter", lazy="selectin"
+    )
+    draft: Mapped["NewsletterDraft | None"] = relationship(
+        back_populates="newsletter", cascade="all, delete-orphan", uselist=False, lazy="selectin"
+    )
+    versions: Mapped[list["NewsletterVersion"]] = relationship(
+        back_populates="newsletter", cascade="all, delete-orphan", lazy="selectin"
+    )
+    linkedin_posts: Mapped[list["LinkedInPost"]] = relationship(
+        back_populates="newsletter", cascade="all, delete-orphan", lazy="selectin"
+    )
+    carousel_outlines: Mapped[list["CarouselOutline"]] = relationship(
+        back_populates="newsletter", cascade="all, delete-orphan", lazy="selectin"
+    )
+    regeneration_history: Mapped[list["RegenerationHistory"]] = relationship(
+        back_populates="newsletter", cascade="all, delete-orphan", lazy="selectin"
     )
