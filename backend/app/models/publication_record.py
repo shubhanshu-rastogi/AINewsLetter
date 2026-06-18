@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, ForeignKey
+from sqlalchemy import JSON, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base_class import Base
@@ -37,5 +37,13 @@ class PublicationRecord(UUIDMixin, TimestampMixin, Base):
         index=True,
     )
     publication_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    # Extended channel state + retry metadata
+    publish_state: Mapped[str | None] = mapped_column(String(20), index=True)
+    external_publication_id: Mapped[str | None] = mapped_column(String(255))
+    retry_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
+    error_message: Mapped[str | None] = mapped_column(Text)
+    last_retry_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    channel_metadata: Mapped[dict | None] = mapped_column(JSON)
 
     newsletter: Mapped["Newsletter"] = relationship(back_populates="publications")

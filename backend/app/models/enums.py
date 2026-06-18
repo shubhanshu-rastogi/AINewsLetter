@@ -205,3 +205,18 @@ class FeedbackSeverity(StrEnum):
     MEDIUM = "medium"
     HIGH = "high"
     BLOCKER = "blocker"
+
+
+class PublishState(StrEnum):
+    """Per-channel publication state (richer than the legacy PublicationStatus)."""
+
+    DRAFT = "draft"
+    PUBLISHED = "published"
+    FAILED = "failed"
+    RETRYING = "retrying"
+
+
+class SubscriberStatus(StrEnum):
+    ACTIVE = "active"
+    UNSUBSCRIBED = "unsubscribed"
+    BOUNCED = "bounced"

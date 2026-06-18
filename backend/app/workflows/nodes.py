@@ -18,14 +18,8 @@ from typing import Any
 
 from app.core.logging import get_logger
 from app.models.agent_run import AgentRun
-from app.models.enums import (
-    ExecutionStatus,
-    NewsletterStatus,
-    PublicationChannel,
-    PublicationStatus,
-)
+from app.models.enums import ExecutionStatus, NewsletterStatus
 from app.models.newsletter import Newsletter
-from app.models.publication_record import PublicationRecord
 from app.models.workflow_run import WorkflowRun
 from app.workflows.runtime import get_session_factory
 from app.workflows.state import Approval, Nodes, WorkflowState
@@ -277,13 +271,22 @@ async def _human_review(state: WorkflowState) -> dict[str, Any]:
 
 
 async def _approval_router(state: WorkflowState) -> dict[str, Any]:
-    # Routing happens on the outgoing conditional edge; this node only marks
-    # the decision point in the trace.
+    # Persist the reviewer's decision (approve -> newsletter APPROVED, reject ->
+    # ARCHIVED) so the publisher's approval precondition holds. Routing itself
+    # happens on the outgoing conditional edge.
+    from app.agents.review_feedback.review_agent import ReviewAgent
+
+    status = state.get("approval_status")
+    rsid = state.get("review_session_id")
     logger.info(
         "approval_decision",
         workflow_run_id=state.get("workflow_run_id"),
-        approval_status=state.get("approval_status"),
+        approval_status=status,
     )
+    if rsid and status == Approval.APPROVED:
+        await ReviewAgent(get_session_factory()).approve(rsid, reviewer="workflow")
+    elif rsid and status == Approval.REJECTED:
+        await ReviewAgent(get_session_factory()).reject(rsid, reviewer="workflow")
     return {}
 
 
@@ -326,26 +329,24 @@ async def _draft_regeneration(state: WorkflowState) -> dict[str, Any]:
 
 
 async def _publisher(state: WorkflowState) -> dict[str, Any]:
-    nl_id = state.get("newsletter_id")
-    sf = get_session_factory()
-    async with sf() as session:
-        for channel in (
-            PublicationChannel.BEEHIIV,
-            PublicationChannel.LINKEDIN,
-            PublicationChannel.EMAIL,
-        ):
-            session.add(
-                PublicationRecord(
-                    newsletter_id=_as_uuid(nl_id),
-                    channel=channel,
-                    publication_status=PublicationStatus.PUBLISHED,
-                    publication_date=_utcnow(),
-                )
-            )
-        await session.commit()
+    """Publish the approved newsletter to Beehiiv + LinkedIn + email (prepared)."""
+    from app.agents.publishing.exceptions import PublishError
+    from app.agents.publishing.publisher_agent import PublisherAgent
 
-    await _set_newsletter_status(nl_id, NewsletterStatus.PUBLISHED)
-    return {"publish_status": "published"}
+    nl_id = state.get("newsletter_id")
+    if not nl_id:
+        return {"publish_status": "failed"}
+
+    agent = PublisherAgent(get_session_factory())
+    try:
+        result = await agent.publish_newsletter(nl_id)
+    except PublishError as exc:
+        logger.error("publication_failed", workflow_run_id=state.get("workflow_run_id"), error=str(exc))
+        return {"publish_status": "failed"}
+
+    if result["overall"] in ("published", "partial"):
+        await _set_newsletter_status(nl_id, NewsletterStatus.PUBLISHED)
+    return {"publish_status": result["publish_status"]}
 
 
 async def _completion(state: WorkflowState) -> dict[str, Any]:

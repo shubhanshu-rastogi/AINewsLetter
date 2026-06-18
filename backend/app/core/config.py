@@ -113,6 +113,16 @@ class Settings(BaseSettings):
     REVIEW_AUTH_TOKEN: str | None = None  # set to require a bearer token on review APIs
 
     # ------------------------------------------------------------------ #
+    # Publishing
+    # ------------------------------------------------------------------ #
+    ENABLE_REAL_PUBLISHING: bool = False  # off -> simulated publish (no external calls)
+    BEEHIIV_PUBLICATION_ID: str | None = None
+    LINKEDIN_AUTHOR_URN: str | None = None
+    NEWSLETTER_SUBSCRIBE_URL: str = "https://aiqeweekly.example.com/subscribe"
+    MAX_PUBLISH_RETRIES: int = 3
+    PUBLISH_RETRY_BASE_DELAY: float = 1.0
+
+    # ------------------------------------------------------------------ #
     # Derived values
     # ------------------------------------------------------------------ #
     @property

@@ -17,8 +17,10 @@ from app.api.articles import router as articles_router
 from app.api.facts import router as facts_router
 from app.api.health import router as health_router
 from app.api.newsletters import router as newsletters_router
+from app.api.publishing import publications_router, publish_router
 from app.api.reviews import router as reviews_router
 from app.api.sources import router as sources_router
+from app.api.subscribers import router as subscribers_router
 from app.api.visuals import router as visuals_router
 from app.api.v1.router import api_router
 from app.api.workflows import router as workflows_router
@@ -85,6 +87,9 @@ def create_app() -> FastAPI:
     app.include_router(newsletters_router, prefix="/api/newsletters")
     app.include_router(visuals_router, prefix="/api/visuals")
     app.include_router(reviews_router, prefix="/api/reviews")
+    app.include_router(publish_router, prefix="/api/publish")
+    app.include_router(publications_router, prefix="/api/publications")
+    app.include_router(subscribers_router, prefix="/api/subscribers")
 
     return app
 
