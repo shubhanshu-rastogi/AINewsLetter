@@ -30,6 +30,7 @@ from app.models import (  # noqa: F401
     SystemSetting,
     User,
     VerifiedClaim,
+    VisualVersion,
     WorkflowRun,
 )
 

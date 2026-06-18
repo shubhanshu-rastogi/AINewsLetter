@@ -25,6 +25,7 @@ from app.models.review_session import ReviewSession
 from app.models.system_setting import SystemSetting
 from app.models.user import User
 from app.models.verified_claim import VerifiedClaim
+from app.models.visual_version import VisualVersion
 from app.models.workflow_run import WorkflowRun
 
 __all__ = [
@@ -50,5 +51,6 @@ __all__ = [
     "SystemSetting",
     "User",
     "VerifiedClaim",
+    "VisualVersion",
     "WorkflowRun",
 ]

@@ -26,6 +26,10 @@ from app.core.config import settings
 settings.ENABLE_SCHEDULER = False
 # Keep fact-checking offline by default (no real URL HEAD requests).
 settings.FACT_CHECK_VERIFY_URLS = False
+# Write generated visuals to a throwaway temp dir during tests.
+import tempfile as _tempfile  # noqa: E402
+
+settings.VISUAL_STORAGE_ROOT = _tempfile.mkdtemp(prefix="ainl-visuals-")
 
 from app.db.base import Base  # noqa: E402
 from app.main import app  # noqa: E402

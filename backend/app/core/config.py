@@ -98,6 +98,14 @@ class Settings(BaseSettings):
     MIN_CONFIDENCE_FOR_PUBLISH: float = 90.0
 
     # ------------------------------------------------------------------ #
+    # Visual generation
+    # ------------------------------------------------------------------ #
+    VISUAL_STORAGE_ROOT: str = "storage"
+    VISUAL_BASE_URL: str = "/static"  # served root; asset rel paths begin with "visuals/"
+    ENABLE_AI_IMAGES: bool = False  # off -> programmatic cover (no external image API)
+    AI_IMAGE_MODEL: str = "gpt-image-1"
+
+    # ------------------------------------------------------------------ #
     # Derived values
     # ------------------------------------------------------------------ #
     @property

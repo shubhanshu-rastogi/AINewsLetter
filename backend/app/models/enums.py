@@ -146,3 +146,26 @@ class TrustTier(StrEnum):
     HIGH = "high"
     MEDIUM = "medium"
     LOW = "low"
+
+
+class VisualKind(StrEnum):
+    """Specific visual artifact type (finer-grained than VisualType)."""
+
+    COVER = "cover"
+    CAROUSEL_SLIDE = "carousel_slide"
+    SUMMARY_CARD = "summary_card"
+    TOOL_CARD = "tool_card"
+    RESEARCH_CARD = "research_card"
+    BENCHMARK_CARD = "benchmark_card"
+    TAKEAWAY_CARD = "takeaway_card"
+
+
+class GenerationMethod(StrEnum):
+    AI_IMAGE = "ai_image"
+    PROGRAMMATIC = "programmatic"
+
+
+class VisualStatus(StrEnum):
+    GENERATED = "generated"
+    FAILED = "failed"
+    REGENERATED = "regenerated"

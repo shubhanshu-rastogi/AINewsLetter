@@ -236,7 +236,17 @@ async def _linkedin_writer(state: WorkflowState) -> dict[str, Any]:
 
 
 async def _visual_generation(state: WorkflowState) -> dict[str, Any]:
-    return {"visual_ids": ["visual-stub-1"]}
+    """Generate cover, carousel, and cards from the newsletter draft."""
+    from app.agents.visual_generation.visual_agent import VisualGenerationAgent
+
+    newsletter_id = state.get("newsletter_id")
+    if not newsletter_id:
+        return {"visual_ids": []}
+    agent = VisualGenerationAgent(get_session_factory())
+    result = await agent.generate_all_visuals(
+        newsletter_id, content=state.get("newsletter_draft")
+    )
+    return {"visual_ids": result["visual_ids"]}
 
 
 async def _editorial_review(state: WorkflowState) -> dict[str, Any]:

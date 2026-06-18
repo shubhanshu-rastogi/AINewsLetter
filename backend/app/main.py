@@ -18,6 +18,7 @@ from app.api.facts import router as facts_router
 from app.api.health import router as health_router
 from app.api.newsletters import router as newsletters_router
 from app.api.sources import router as sources_router
+from app.api.visuals import router as visuals_router
 from app.api.v1.router import api_router
 from app.api.workflows import router as workflows_router
 from app.core.config import settings
@@ -81,6 +82,7 @@ def create_app() -> FastAPI:
     app.include_router(articles_router, prefix="/api/articles")
     app.include_router(facts_router, prefix="/api/facts")
     app.include_router(newsletters_router, prefix="/api/newsletters")
+    app.include_router(visuals_router, prefix="/api/visuals")
 
     return app
 

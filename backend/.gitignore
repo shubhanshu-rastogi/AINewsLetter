@@ -23,3 +23,6 @@ htmlcov/
 .DS_Store
 .idea/
 .vscode/
+
+# Generated visual assets
+storage/
