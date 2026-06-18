@@ -169,3 +169,39 @@ class VisualStatus(StrEnum):
     GENERATED = "generated"
     FAILED = "failed"
     REGENERATED = "regenerated"
+
+
+class ReviewState(StrEnum):
+    """Review session lifecycle (richer than the legacy ReviewStatus enum)."""
+
+    PENDING = "pending"
+    FEEDBACK_REQUIRED = "feedback_required"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    SUPERSEDED = "superseded"
+
+
+class ArtifactType(StrEnum):
+    NEWSLETTER = "newsletter"
+    NEWSLETTER_SECTION = "newsletter_section"
+    VISUAL = "visual"
+    LINKEDIN_POST = "linkedin_post"
+    SOURCE = "source"
+
+
+class FeedbackCategory(StrEnum):
+    CONTENT_CHANGE = "content_change"
+    TONE_CHANGE = "tone_change"
+    LENGTH_CHANGE = "length_change"
+    STRUCTURE_CHANGE = "structure_change"
+    VISUAL_CHANGE = "visual_change"
+    SOURCE_ISSUE = "source_issue"
+    FACT_CHECK_ISSUE = "fact_check_issue"
+    APPROVAL_COMMENT = "approval_comment"
+
+
+class FeedbackSeverity(StrEnum):
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    BLOCKER = "blocker"

@@ -21,7 +21,11 @@ from app.models.newsletter_section import NewsletterSection
 from app.models.newsletter_version import NewsletterVersion
 from app.models.publication_record import PublicationRecord
 from app.models.regeneration_history import RegenerationHistory
+from app.models.regeneration_plan import RegenerationPlan
+from app.models.review_notification import ReviewNotification
+from app.models.review_package import ReviewPackage
 from app.models.review_session import ReviewSession
+from app.models.review_version import ReviewVersion
 from app.models.system_setting import SystemSetting
 from app.models.user import User
 from app.models.verified_claim import VerifiedClaim
@@ -47,7 +51,11 @@ __all__ = [
     "NewsletterVersion",
     "PublicationRecord",
     "RegenerationHistory",
+    "RegenerationPlan",
+    "ReviewNotification",
+    "ReviewPackage",
     "ReviewSession",
+    "ReviewVersion",
     "SystemSetting",
     "User",
     "VerifiedClaim",

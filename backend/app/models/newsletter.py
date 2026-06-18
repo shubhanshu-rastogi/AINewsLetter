@@ -23,6 +23,7 @@ if TYPE_CHECKING:
     from app.models.publication_record import PublicationRecord
     from app.models.regeneration_history import RegenerationHistory
     from app.models.review_session import ReviewSession
+    from app.models.review_version import ReviewVersion
     from app.models.workflow_run import WorkflowRun
 
 
@@ -68,5 +69,8 @@ class Newsletter(UUIDMixin, TimestampMixin, Base):
         back_populates="newsletter", cascade="all, delete-orphan", lazy="selectin"
     )
     regeneration_history: Mapped[list["RegenerationHistory"]] = relationship(
+        back_populates="newsletter", cascade="all, delete-orphan", lazy="selectin"
+    )
+    review_versions: Mapped[list["ReviewVersion"]] = relationship(
         back_populates="newsletter", cascade="all, delete-orphan", lazy="selectin"
     )

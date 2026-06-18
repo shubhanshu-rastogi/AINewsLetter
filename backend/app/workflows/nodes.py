@@ -23,12 +23,9 @@ from app.models.enums import (
     NewsletterStatus,
     PublicationChannel,
     PublicationStatus,
-    ReviewStatus,
 )
-from app.models.feedback_item import FeedbackItem
 from app.models.newsletter import Newsletter
 from app.models.publication_record import PublicationRecord
-from app.models.review_session import ReviewSession
 from app.models.workflow_run import WorkflowRun
 from app.workflows.runtime import get_session_factory
 from app.workflows.state import Approval, Nodes, WorkflowState
@@ -255,32 +252,26 @@ async def _editorial_review(state: WorkflowState) -> dict[str, Any]:
 
 
 async def _human_review(state: WorkflowState) -> dict[str, Any]:
-    """Create a review session, mark the newsletter as 'review', and pause.
+    """Create a review session + package (and Notion page), then pause.
 
     The graph is compiled with ``interrupt_after`` on this node, so execution
     stops here until :func:`resume_workflow_after_review` is called.
     """
+    from app.agents.review_feedback.review_agent import ReviewAgent
+
     nl_id = state.get("newsletter_id")
-    review_session_id: str | None = None
+    if not nl_id:
+        return {"approval_status": Approval.PENDING}
 
-    sf = get_session_factory()
-    async with sf() as session:
-        review = ReviewSession(
-            newsletter_id=_as_uuid(nl_id),
-            review_status=ReviewStatus.PENDING,
-        )
-        session.add(review)
-        await session.commit()
-        review_session_id = str(review.id)
-
-    await _set_newsletter_status(nl_id, NewsletterStatus.REVIEW)
+    agent = ReviewAgent(get_session_factory())
+    result = await agent.start_review(nl_id, content=state.get("newsletter_draft"))
     logger.info(
         "workflow_paused_for_review",
         workflow_run_id=state.get("workflow_run_id"),
-        review_session_id=review_session_id,
+        review_session_id=result["review_session_id"],
     )
     return {
-        "review_session_id": review_session_id,
+        "review_session_id": result["review_session_id"],
         "approval_status": Approval.PENDING,
     }
 
@@ -297,29 +288,41 @@ async def _approval_router(state: WorkflowState) -> dict[str, Any]:
 
 
 async def _feedback_processor(state: WorkflowState) -> dict[str, Any]:
+    """Classify feedback, plan + run targeted regeneration, supersede session."""
+    from app.agents.review_feedback.feedback_agent import FeedbackAgent
+
     review_session_id = state.get("review_session_id")
-    items = state.get("feedback_items") or []
-    if review_session_id and items:
-        sf = get_session_factory()
-        async with sf() as session:
-            for item in items:
-                session.add(
-                    FeedbackItem(
-                        review_session_id=_as_uuid(review_session_id),
-                        feedback_text=item.get("feedback_text"),
-                    )
-                )
-            await session.commit()
-    # Reset approval for the next review round.
+    if not review_session_id:
+        return {"approval_status": Approval.PENDING}
+
+    agent = FeedbackAgent(get_session_factory())
+    # human_review (loop re-entry) creates the next session, so don't here.
+    await agent.process_feedback(
+        review_session_id,
+        items=state.get("feedback_items") or None,
+        create_new_session=False,
+    )
     return {"approval_status": Approval.PENDING}
 
 
 async def _draft_regeneration(state: WorkflowState) -> dict[str, Any]:
+    """Reload the regenerated draft content into workflow state."""
+    from app.models.newsletter_draft import NewsletterDraft
+
+    from sqlalchemy import select
+
     count = (state.get("regeneration_count") or 0) + 1
-    draft = dict(state.get("newsletter_draft") or {})
-    draft["revised"] = True
-    draft["revision"] = count
-    return {"newsletter_draft": draft, "regeneration_count": count}
+    nl_id = state.get("newsletter_id")
+    draft_content = state.get("newsletter_draft")
+    if nl_id:
+        sf = get_session_factory()
+        async with sf() as session:
+            draft = await session.scalar(
+                select(NewsletterDraft).where(NewsletterDraft.newsletter_id == _as_uuid(nl_id))
+            )
+            if draft and draft.content:
+                draft_content = draft.content
+    return {"newsletter_draft": draft_content, "regeneration_count": count}
 
 
 async def _publisher(state: WorkflowState) -> dict[str, Any]:

@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ForeignKey, Text
+from sqlalchemy import Boolean, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base_class import Base
@@ -38,5 +38,13 @@ class FeedbackItem(UUIDMixin, TimestampMixin, Base):
         nullable=False,
         index=True,
     )
+
+    # Captured + classified metadata (richer than the legacy feedback_type enum)
+    artifact_type: Mapped[str | None] = mapped_column(String(40))
+    section_name: Mapped[str | None] = mapped_column(String(120))
+    feedback_category: Mapped[str | None] = mapped_column(String(40))
+    severity: Mapped[str | None] = mapped_column(String(20))
+    action_required: Mapped[str | None] = mapped_column(Text)
+    regeneration_needed: Mapped[bool | None] = mapped_column(Boolean)
 
     review_session: Mapped["ReviewSession"] = relationship(back_populates="feedback_items")

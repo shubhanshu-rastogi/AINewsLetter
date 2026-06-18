@@ -106,6 +106,13 @@ class Settings(BaseSettings):
     AI_IMAGE_MODEL: str = "gpt-image-1"
 
     # ------------------------------------------------------------------ #
+    # Human review / feedback
+    # ------------------------------------------------------------------ #
+    NOTION_REVIEW_DATABASE_ID: str | None = None
+    ENABLE_LLM_FEEDBACK: bool = False
+    REVIEW_AUTH_TOKEN: str | None = None  # set to require a bearer token on review APIs
+
+    # ------------------------------------------------------------------ #
     # Derived values
     # ------------------------------------------------------------------ #
     @property
