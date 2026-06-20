@@ -106,6 +106,11 @@ graph TB
 
 ## 2. Detailed Component Diagram
 
+> ⚠️ **Design-time diagram.** The implementation diverged from this sketch
+> (e.g. in-process `MemorySaver` instead of a Postgres checkpointer; no
+> pgvector, Celery workers, or S3). For the accurate as-built pipeline and data
+> flow, see [`backend/docs/agent_dataflow.md`](backend/docs/agent_dataflow.md).
+
 ```mermaid
 graph TB
     subgraph API["FastAPI Application"]
@@ -185,6 +190,13 @@ graph TB
 ---
 
 ## 3. Agent Interaction Diagram
+
+> ⚠️ **Design-time diagram.** The as-built flow has separate automated
+> `editorial_review` and `human_review` nodes, an `approval_router`, and a
+> `feedback_processor → draft_regeneration → editorial_review` loop, and has no
+> memory/pgvector service. See
+> [`backend/docs/agent_dataflow.md`](backend/docs/agent_dataflow.md) for the
+> accurate version.
 
 ```mermaid
 sequenceDiagram

@@ -4,6 +4,7 @@ Operational documentation for the AI & Quality Engineering Weekly platform.
 
 | Doc | Contents |
 |---|---|
+| [agent_dataflow.md](agent_dataflow.md) | As-built agent pipeline & data-flow diagrams (source-accurate) |
 | [architecture_production.md](architecture_production.md) | Production architecture diagram + scaling to target volumes |
 | [deployment.md](deployment.md) | Single-server / Compose / future-k8s; startup, shutdown, scaling, rollback |
 | [cicd.md](cicd.md) | GitHub Actions pipeline, quality gates, PR checks |
