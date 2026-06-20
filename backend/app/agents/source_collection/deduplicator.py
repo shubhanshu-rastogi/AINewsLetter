@@ -28,10 +28,7 @@ def title_similarity(a: str, b: str) -> float:
 
 
 def is_similar_title(title: str, known_titles: Iterable[str]) -> bool:
-    return any(
-        title_similarity(title, known) >= TITLE_SIMILARITY_THRESHOLD
-        for known in known_titles
-    )
+    return any(title_similarity(title, known) >= TITLE_SIMILARITY_THRESHOLD for known in known_titles)
 
 
 async def find_duplicate(
@@ -44,17 +41,13 @@ async def find_duplicate(
     content_hash = normalized.get("content_hash")
     title = normalized["title"]
 
-    existing_url = await session.scalar(
-        select(CollectedArticle.id).where(CollectedArticle.url == url)
-    )
+    existing_url = await session.scalar(select(CollectedArticle.id).where(CollectedArticle.url == url))
     if existing_url is not None:
         return True, "same_url"
 
     if content_hash:
         existing_hash = await session.scalar(
-            select(CollectedArticle.id).where(
-                CollectedArticle.content_hash == content_hash
-            )
+            select(CollectedArticle.id).where(CollectedArticle.content_hash == content_hash)
         )
         if existing_hash is not None:
             return True, "same_content_hash"

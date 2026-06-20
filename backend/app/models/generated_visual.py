@@ -32,9 +32,7 @@ class GeneratedVisual(UUIDMixin, TimestampMixin, Base):
         index=True,
     )
 
-    visual_type: Mapped[VisualType] = mapped_column(
-        str_enum(VisualType, "visual_type"), nullable=False
-    )
+    visual_type: Mapped[VisualType] = mapped_column(str_enum(VisualType, "visual_type"), nullable=False)
     prompt_used: Mapped[str | None] = mapped_column(Text)
     file_path: Mapped[str | None] = mapped_column(String(2048))
 
@@ -47,12 +45,10 @@ class GeneratedVisual(UUIDMixin, TimestampMixin, Base):
     width: Mapped[int | None] = mapped_column(Integer)
     height: Mapped[int | None] = mapped_column(Integer)
     slide_number: Mapped[int | None] = mapped_column(Integer)
-    version: Mapped[int] = mapped_column(
-        Integer, default=1, server_default="1", nullable=False
-    )
+    version: Mapped[int] = mapped_column(Integer, default=1, server_default="1", nullable=False)
     status: Mapped[str | None] = mapped_column(String(30))
 
-    newsletter: Mapped["Newsletter"] = relationship(back_populates="visuals")
-    versions: Mapped[list["VisualVersion"]] = relationship(
+    newsletter: Mapped[Newsletter] = relationship(back_populates="visuals")
+    versions: Mapped[list[VisualVersion]] = relationship(
         back_populates="visual", cascade="all, delete-orphan", lazy="selectin"
     )

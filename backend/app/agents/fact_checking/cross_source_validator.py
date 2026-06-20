@@ -22,8 +22,28 @@ _SENTENCE_RE = re.compile(r"(?<=[.!?])\s+|\n+")
 _NUMBER_RE = re.compile(r"\d")
 _PERCENT_RE = re.compile(r"\d+(\.\d+)?\s?%")
 _STOPWORDS = {
-    "the", "a", "an", "and", "or", "of", "to", "in", "on", "for", "with",
-    "is", "are", "was", "were", "this", "that", "from", "by", "at", "as", "it",
+    "the",
+    "a",
+    "an",
+    "and",
+    "or",
+    "of",
+    "to",
+    "in",
+    "on",
+    "for",
+    "with",
+    "is",
+    "are",
+    "was",
+    "were",
+    "this",
+    "that",
+    "from",
+    "by",
+    "at",
+    "as",
+    "it",
 }
 _NEGATIONS = ("not ", "no ", "false", "debunk", "myth", "incorrect", "denies")
 

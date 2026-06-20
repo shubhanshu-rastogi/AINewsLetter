@@ -41,36 +41,34 @@ class Newsletter(UUIDMixin, TimestampMixin, Base):
     )
     version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
 
-    sections: Mapped[list["NewsletterSection"]] = relationship(
+    sections: Mapped[list[NewsletterSection]] = relationship(
         back_populates="newsletter", cascade="all, delete-orphan", lazy="selectin"
     )
-    visuals: Mapped[list["GeneratedVisual"]] = relationship(
+    visuals: Mapped[list[GeneratedVisual]] = relationship(
         back_populates="newsletter", cascade="all, delete-orphan", lazy="selectin"
     )
-    review_sessions: Mapped[list["ReviewSession"]] = relationship(
+    review_sessions: Mapped[list[ReviewSession]] = relationship(
         back_populates="newsletter", cascade="all, delete-orphan", lazy="selectin"
     )
-    publications: Mapped[list["PublicationRecord"]] = relationship(
+    publications: Mapped[list[PublicationRecord]] = relationship(
         back_populates="newsletter", cascade="all, delete-orphan", lazy="selectin"
     )
-    workflow_runs: Mapped[list["WorkflowRun"]] = relationship(
-        back_populates="newsletter", lazy="selectin"
-    )
-    draft: Mapped["NewsletterDraft | None"] = relationship(
+    workflow_runs: Mapped[list[WorkflowRun]] = relationship(back_populates="newsletter", lazy="selectin")
+    draft: Mapped[NewsletterDraft | None] = relationship(
         back_populates="newsletter", cascade="all, delete-orphan", uselist=False, lazy="selectin"
     )
-    versions: Mapped[list["NewsletterVersion"]] = relationship(
+    versions: Mapped[list[NewsletterVersion]] = relationship(
         back_populates="newsletter", cascade="all, delete-orphan", lazy="selectin"
     )
-    linkedin_posts: Mapped[list["LinkedInPost"]] = relationship(
+    linkedin_posts: Mapped[list[LinkedInPost]] = relationship(
         back_populates="newsletter", cascade="all, delete-orphan", lazy="selectin"
     )
-    carousel_outlines: Mapped[list["CarouselOutline"]] = relationship(
+    carousel_outlines: Mapped[list[CarouselOutline]] = relationship(
         back_populates="newsletter", cascade="all, delete-orphan", lazy="selectin"
     )
-    regeneration_history: Mapped[list["RegenerationHistory"]] = relationship(
+    regeneration_history: Mapped[list[RegenerationHistory]] = relationship(
         back_populates="newsletter", cascade="all, delete-orphan", lazy="selectin"
     )
-    review_versions: Mapped[list["ReviewVersion"]] = relationship(
+    review_versions: Mapped[list[ReviewVersion]] = relationship(
         back_populates="newsletter", cascade="all, delete-orphan", lazy="selectin"
     )

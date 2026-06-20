@@ -31,13 +31,13 @@ class BrandConfig:
     secondary_font: str = "secondary"
 
     # Palette (enterprise, high-contrast, minimal)
-    bg_color: tuple[int, int, int] = (15, 23, 42)        # slate-900
+    bg_color: tuple[int, int, int] = (15, 23, 42)  # slate-900
     bg_accent_color: tuple[int, int, int] = (30, 58, 138)  # blue-900
     surface_color: tuple[int, int, int] = (248, 250, 252)  # slate-50
     text_color: tuple[int, int, int] = (15, 23, 42)
     inverse_text_color: tuple[int, int, int] = (248, 250, 252)
-    accent_color: tuple[int, int, int] = (56, 189, 248)   # sky-400
-    muted_color: tuple[int, int, int] = (100, 116, 139)   # slate-500
+    accent_color: tuple[int, int, int] = (56, 189, 248)  # sky-400
+    muted_color: tuple[int, int, int] = (100, 116, 139)  # slate-500
 
     # Layout
     background_style: str = "gradient"

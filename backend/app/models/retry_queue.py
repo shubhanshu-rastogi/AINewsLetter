@@ -25,5 +25,7 @@ class RetryQueueEntry(UUIDMixin, TimestampMixin, Base):
     attempt: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
     max_retries: Mapped[int] = mapped_column(Integer, default=3, server_default="3", nullable=False)
     next_attempt_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    status: Mapped[str] = mapped_column(String(20), default="pending", server_default="pending", nullable=False, index=True)
+    status: Mapped[str] = mapped_column(
+        String(20), default="pending", server_default="pending", nullable=False, index=True
+    )
     last_error: Mapped[str | None] = mapped_column(Text)

@@ -7,8 +7,8 @@ module so doc-specific extraction can evolve independently.
 
 from __future__ import annotations
 
-from app.agents.source_collection.http_client import fetch_text, is_allowed_by_robots
 from app.agents.source_collection.exceptions import RobotsDisallowedError
+from app.agents.source_collection.http_client import fetch_text, is_allowed_by_robots
 from app.agents.source_collection.types import RawArticle
 from app.agents.source_collection.web_collector import parse_page
 from app.core.logging import get_logger
@@ -23,7 +23,5 @@ async def collect_documentation(source: ContentSource) -> list[RawArticle]:
         raise RobotsDisallowedError(f"robots.txt disallows {url}")
     html = await fetch_text(url)
     article = parse_page(html, url)
-    logger.info(
-        "articles_collected", source=source.source_name, count=1, method="documentation"
-    )
+    logger.info("articles_collected", source=source.source_name, count=1, method="documentation")
     return [article]

@@ -30,19 +30,25 @@ from app.models.review_version import ReviewVersion
 CONTENT = {
     "cover": {"title": "AI & Quality Engineering Weekly", "issue_number": 1},
     "executive_summary": "Weekly briefing.",
-    "top_stories": [{"headline": "Agents ship", "what_happened": "x",
-                     "citation": {"source_name": "OpenAI", "publication_date": "2026-06-18"}}],
-    "tools": [], "testing": {"title": "t", "insight": "i"},
+    "top_stories": [
+        {
+            "headline": "Agents ship",
+            "what_happened": "x",
+            "citation": {"source_name": "OpenAI", "publication_date": "2026-06-18"},
+        }
+    ],
+    "tools": [],
+    "testing": {"title": "t", "insight": "i"},
     "research": {"paper": "r", "key_findings": "k"},
     "benchmark": {"title": "b", "what_improved": "w"},
-    "trends": [], "final_takeaways": ["a"],
+    "trends": [],
+    "final_takeaways": ["a"],
 }
 
 
 async def _seed_newsletter(session_factory, content=CONTENT) -> str:
     async with session_factory() as s:
-        nl = Newsletter(title="AI & Quality Engineering Weekly", issue_number=1,
-                        status=NewsletterStatus.DRAFT)
+        nl = Newsletter(title="AI & Quality Engineering Weekly", issue_number=1, status=NewsletterStatus.DRAFT)
         s.add(nl)
         await s.flush()
         s.add(NewsletterDraft(newsletter_id=nl.id, content=content, current_version=1))
@@ -125,14 +131,28 @@ def test_classification_severity_and_regen_flag() -> None:
 # --- regeneration planning --- #
 def test_regeneration_planning() -> None:
     items = [
-        {"feedback_text": "Make this shorter.", "section_name": "Executive Summary",
-         "feedback_category": "length_change", "artifact_type": "newsletter_section"},
-        {"feedback_text": "Replace the research story.", "section_name": "Research Watch",
-         "feedback_category": "source_issue", "artifact_type": "newsletter_section"},
-        {"feedback_text": "Visual slide 4 has too much text.", "feedback_category": "visual_change",
-         "artifact_type": "visual"},
-        {"feedback_text": "Add more QA angle across the issue.", "feedback_category": "content_change",
-         "artifact_type": "newsletter"},
+        {
+            "feedback_text": "Make this shorter.",
+            "section_name": "Executive Summary",
+            "feedback_category": "length_change",
+            "artifact_type": "newsletter_section",
+        },
+        {
+            "feedback_text": "Replace the research story.",
+            "section_name": "Research Watch",
+            "feedback_category": "source_issue",
+            "artifact_type": "newsletter_section",
+        },
+        {
+            "feedback_text": "Visual slide 4 has too much text.",
+            "feedback_category": "visual_change",
+            "artifact_type": "visual",
+        },
+        {
+            "feedback_text": "Add more QA angle across the issue.",
+            "feedback_category": "content_change",
+            "artifact_type": "newsletter",
+        },
     ]
     plan = regeneration_planner.build_plan(items)
     types = {(a["type"], a.get("section"), a.get("slide_number")) for a in plan["actions"]}
@@ -143,9 +163,7 @@ def test_regeneration_planning() -> None:
 
 
 def test_plan_skips_approval_comments() -> None:
-    plan = regeneration_planner.build_plan(
-        [{"feedback_text": "looks good", "feedback_category": "approval_comment"}]
-    )
+    plan = regeneration_planner.build_plan([{"feedback_text": "looks good", "feedback_category": "approval_comment"}])
     assert plan["actions"] == []
 
 
@@ -183,13 +201,15 @@ async def test_targeted_regeneration_calls(session_factory) -> None:
     agent.regenerate_carousel_slide = rec_slide
     agent.regenerate_cover_image = rec_cover
 
-    plan = {"actions": [
-        {"type": "regenerate_section", "section": "research"},
-        {"type": "replace_article_and_regenerate_section", "section": "research"},
-        {"type": "regenerate_linkedin"},
-        {"type": "regenerate_carousel_slide", "slide_number": 4},
-        {"type": "regenerate_cover"},
-    ]}
+    plan = {
+        "actions": [
+            {"type": "regenerate_section", "section": "research"},
+            {"type": "replace_article_and_regenerate_section", "section": "research"},
+            {"type": "regenerate_linkedin"},
+            {"type": "regenerate_carousel_slide", "slide_number": 4},
+            {"type": "regenerate_cover"},
+        ]
+    }
     changed = await agent.execute_plan("nid", plan)
     assert ("section", "research") in calls
     assert ("slide", 4) in calls
@@ -212,8 +232,14 @@ async def test_process_feedback_creates_version_and_new_session(session_factory)
 
     result = await agent.process_feedback(
         review_id,
-        items=[{"artifact_type": "newsletter_section", "section_name": "Executive Summary",
-                "feedback_text": "Make this shorter.", "severity": "MEDIUM"}],
+        items=[
+            {
+                "artifact_type": "newsletter_section",
+                "section_name": "Executive Summary",
+                "feedback_text": "Make this shorter.",
+                "severity": "MEDIUM",
+            }
+        ],
         create_new_session=True,
     )
     assert result["new_review_session_id"]

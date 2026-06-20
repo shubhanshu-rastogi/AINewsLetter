@@ -30,9 +30,13 @@ def api_client(tmp_path):
             await conn.run_sync(Base.metadata.create_all)
         async with sf() as s:
             src = ContentSource(
-                source_name="Docs", source_type=SourceType.DOCUMENTATION,
-                source_url="https://ex.com", priority=1, credibility_score=0.9,
-                freshness_score=0.8, relevance_score=0.9,
+                source_name="Docs",
+                source_type=SourceType.DOCUMENTATION,
+                source_url="https://ex.com",
+                priority=1,
+                credibility_score=0.9,
+                freshness_score=0.8,
+                relevance_score=0.9,
                 preferred_collection_method=CollectionMethod.DOCUMENTATION,
                 category="Agentic AI Engineering",
             )
@@ -43,9 +47,10 @@ def api_client(tmp_path):
                 title="Agent orchestration framework launch",
                 url="https://ex.com/story",
                 raw_content="The agent achieves 95% accuracy on SWE-bench. "
-                            "OpenAI launches a new orchestration framework today.",
+                "OpenAI launches a new orchestration framework today.",
                 summary="Agent orchestration framework.",
-                status=ArticleStatus.PROCESSED, is_selected=True,
+                status=ArticleStatus.PROCESSED,
+                is_selected=True,
                 published_date=datetime.now(timezone.utc),
                 source_category="Agentic AI Engineering",
             )

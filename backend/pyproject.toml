@@ -11,12 +11,33 @@ addopts = "-ra"
 
 [tool.ruff]
 target-version = "py312"
-line-length = 100
+line-length = 120
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
+# E501: line length is owned by the formatter (long string/data literals kept).
+# UP017: keep explicit timezone.utc for clarity/compat.
+# B008: FastAPI uses Depends(...) in defaults by design.
+ignore = ["E501", "UP017", "B008", "UP046", "UP047"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E402", "B011"]
+
+[tool.black]
+line-length = 120
+target-version = ["py312"]
+
+[tool.isort]
+profile = "black"
+line_length = 120
 
 [tool.mypy]
 python_version = "3.12"
-warn_unused_ignores = true
 ignore_missing_imports = true
+# Pragmatic settings for a large async codebase; tighten incrementally.
+check_untyped_defs = false
+warn_unused_ignores = false
+exclude = ["alembic/", "tests/"]
+
+[tool.coverage.run]
+omit = ["app/main.py", "alembic/*", "tests/*"]

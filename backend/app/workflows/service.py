@@ -96,9 +96,7 @@ class WorkflowService:
 
         logger.info("workflow_started", workflow_run_id=wf_id, issue_number=issue_number)
         state = await self._with_session_factory(
-            lambda: self.graph.ainvoke(
-                _initial_state(wf_id, nl_id, issue_number), thread_config(wf_id)
-            )
+            lambda: self.graph.ainvoke(_initial_state(wf_id, nl_id, issue_number), thread_config(wf_id))
         )
         return {
             "workflow_run_id": wf_id,

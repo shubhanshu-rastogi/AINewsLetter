@@ -39,9 +39,7 @@ LAST_RUN_SETTING_KEY = "collection.last_run_at"
 class SourceCollectionAgent:
     def __init__(self, session_factory: Callable[[], AsyncSession]) -> None:
         self.session_factory = session_factory
-        self._dispatch: dict[
-            CollectionMethod, Callable[[ContentSource], Awaitable[list[RawArticle]]]
-        ] = {
+        self._dispatch: dict[CollectionMethod, Callable[[ContentSource], Awaitable[list[RawArticle]]]] = {
             CollectionMethod.RSS: self.collect_rss,
             CollectionMethod.WEB: self.collect_website,
             CollectionMethod.DOCUMENTATION: self.collect_documentation,
@@ -66,9 +64,7 @@ class SourceCollectionAgent:
         return await newsletter_collector.collect_newsletter_source(source)
 
     # ----- helpers ----- #
-    def normalize_article(
-        self, raw: RawArticle, source: ContentSource, method: CollectionMethod
-    ) -> dict[str, Any]:
+    def normalize_article(self, raw: RawArticle, source: ContentSource, method: CollectionMethod) -> dict[str, Any]:
         return normalizer.normalize_article(raw, source, method)
 
     async def deduplicate_article(
@@ -82,23 +78,17 @@ class SourceCollectionAgent:
         await session.flush()
         return str(article.id)
 
-    def update_workflow_state(
-        self, state: dict[str, Any], article_ids: list[str]
-    ) -> dict[str, Any]:
+    def update_workflow_state(self, state: dict[str, Any], article_ids: list[str]) -> dict[str, Any]:
         existing = list(state.get("collected_article_ids") or [])
         return {"collected_article_ids": existing + article_ids}
 
-    async def _run_collector(
-        self, source: ContentSource, method: CollectionMethod
-    ) -> list[RawArticle]:
+    async def _run_collector(self, source: ContentSource, method: CollectionMethod) -> list[RawArticle]:
         collector = self._dispatch.get(method)
         if collector is None:
             raise UnsupportedCollectionMethodError(f"No collector for method {method}")
         return await collector(source)
 
-    async def _collect_with_fallback(
-        self, source: ContentSource
-    ) -> tuple[list[RawArticle], CollectionMethod]:
+    async def _collect_with_fallback(self, source: ContentSource) -> tuple[list[RawArticle], CollectionMethod]:
         preferred = CollectionMethod(source.preferred_collection_method)
         try:
             return await self._run_collector(source, preferred), preferred
@@ -133,9 +123,7 @@ class SourceCollectionAgent:
         result.collected = len(raws)
         for raw in raws:
             normalized = self.normalize_article(raw, source, method)
-            is_dup, reason = await self.deduplicate_article(
-                session, normalized, batch_titles
-            )
+            is_dup, reason = await self.deduplicate_article(session, normalized, batch_titles)
             if is_dup and reason == "same_url":
                 result.duplicates += 1
                 logger.info("duplicates_skipped", source=source.source_name, reason=reason)
@@ -166,7 +154,9 @@ class SourceCollectionAgent:
             source = await session.get(ContentSource, uuid.UUID(str(source_id)))
             if source is None:
                 return CollectionResult(
-                    source_id=str(source_id), source_name="<unknown>", failed=True,
+                    source_id=str(source_id),
+                    source_name="<unknown>",
+                    failed=True,
                     error="source not found",
                 )
             return await self._collect_source_obj(session, source, set())
@@ -176,10 +166,8 @@ class SourceCollectionAgent:
         logger.info("collection_started")
         async with self.session_factory() as session:
             sources = (
-                await session.execute(
-                    select(ContentSource).where(ContentSource.is_active.is_(True))
-                )
-            ).scalars().all()
+                (await session.execute(select(ContentSource).where(ContentSource.is_active.is_(True)))).scalars().all()
+            )
             ordered = source_strategy.order_sources(sources)
 
             batch_titles: set[str] = set()
@@ -196,9 +184,7 @@ class SourceCollectionAgent:
 
     async def _record_last_run(self, session: AsyncSession) -> None:
         now = datetime.now(timezone.utc).isoformat()
-        setting = await session.scalar(
-            select(SystemSetting).where(SystemSetting.key == LAST_RUN_SETTING_KEY)
-        )
+        setting = await session.scalar(select(SystemSetting).where(SystemSetting.key == LAST_RUN_SETTING_KEY))
         if setting is None:
             session.add(SystemSetting(key=LAST_RUN_SETTING_KEY, value=now))
         else:

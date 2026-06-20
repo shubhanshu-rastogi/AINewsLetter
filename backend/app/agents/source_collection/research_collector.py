@@ -23,15 +23,10 @@ _DEFAULT_QUERY = "cat:cs.SE"
 
 
 def _build_api_url(query: str, limit: int) -> str:
-    return (
-        f"{_ARXIV_API}?search_query={quote(query)}"
-        f"&sortBy=submittedDate&sortOrder=descending&max_results={limit}"
-    )
+    return f"{_ARXIV_API}?search_query={quote(query)}&sortBy=submittedDate&sortOrder=descending&max_results={limit}"
 
 
-async def collect_research(
-    source: ContentSource, *, limit: int | None = None
-) -> list[RawArticle]:
+async def collect_research(source: ContentSource, *, limit: int | None = None) -> list[RawArticle]:
     limit = limit or settings.RESEARCH_BATCH_SIZE
     api_url = _build_api_url(_DEFAULT_QUERY, limit)
 
@@ -53,7 +48,5 @@ async def collect_research(
             )
         )
 
-    logger.info(
-        "research_source_collected", source=source.source_name, count=len(articles)
-    )
+    logger.info("research_source_collected", source=source.source_name, count=len(articles))
     return articles

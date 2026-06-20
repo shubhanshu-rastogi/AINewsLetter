@@ -16,10 +16,7 @@ _RESTRICTIONS = [
     "no text artifacts or garbled words",
 ]
 
-_STYLE = (
-    "clean, professional, minimal, enterprise-friendly, high-contrast, "
-    "abstract geometric, LinkedIn-ready"
-)
+_STYLE = "clean, professional, minimal, enterprise-friendly, high-contrast, abstract geometric, LinkedIn-ready"
 
 
 def build_visual_prompt(

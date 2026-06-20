@@ -24,9 +24,9 @@ from app.models.publication_failure import PublicationFailure
 from app.models.publication_record import PublicationRecord
 from app.models.regeneration_history import RegenerationHistory
 from app.models.regeneration_plan import RegenerationPlan
+from app.models.retry_queue import RetryQueueEntry
 from app.models.review_notification import ReviewNotification
 from app.models.review_package import ReviewPackage
-from app.models.retry_queue import RetryQueueEntry
 from app.models.review_session import ReviewSession
 from app.models.review_version import ReviewVersion
 from app.models.subscriber import Subscriber

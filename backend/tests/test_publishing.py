@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-import uuid
-from datetime import datetime, timezone
-
 import pytest
 from sqlalchemy import func, select
 
@@ -40,29 +37,52 @@ from app.models.review_session import ReviewSession
 CONTENT = {
     "cover": {"title": "AI & Quality Engineering Weekly", "issue_number": 1, "publication_date": "2026-06-18"},
     "executive_summary": "Weekly briefing on agents, evals, and benchmarks.",
-    "top_stories": [{"headline": "Agents ship", "what_happened": "Orchestration.",
-                     "citation": {"source_name": "OpenAI", "publication_date": "2026-06-18"}}],
+    "top_stories": [
+        {
+            "headline": "Agents ship",
+            "what_happened": "Orchestration.",
+            "citation": {"source_name": "OpenAI", "publication_date": "2026-06-18"},
+        }
+    ],
     "tools": [{"name": "Playwright AI", "what_it_does": "Test gen."}],
-    "testing": {"title": "t"}, "research": {"paper": "r"}, "benchmark": {"title": "b"},
-    "trends": [], "final_takeaways": ["Pilot first"],
+    "testing": {"title": "t"},
+    "research": {"paper": "r"},
+    "benchmark": {"title": "b"},
+    "trends": [],
+    "final_takeaways": ["Pilot first"],
 }
 
 
 async def _seed(session_factory, *, approved=True) -> str:
     async with session_factory() as s:
-        nl = Newsletter(title="AI & Quality Engineering Weekly", issue_number=1,
-                        status=NewsletterStatus.APPROVED if approved else NewsletterStatus.DRAFT)
+        nl = Newsletter(
+            title="AI & Quality Engineering Weekly",
+            issue_number=1,
+            status=NewsletterStatus.APPROVED if approved else NewsletterStatus.DRAFT,
+        )
         s.add(nl)
         await s.flush()
         nid = str(nl.id)
         s.add(NewsletterDraft(newsletter_id=nl.id, content=CONTENT, current_version=1))
         s.add(LinkedInPost(newsletter_id=nl.id, body="post", hashtags=["#AI"]))
         s.add(CarouselOutline(newsletter_id=nl.id, slides=[{"slide": 1}]))
-        s.add(GeneratedVisual(newsletter_id=nl.id, visual_type=VisualType.HERO,
-                              visual_kind="cover", file_path="/x/cover.png", width=1200, height=630, version=1))
+        s.add(
+            GeneratedVisual(
+                newsletter_id=nl.id,
+                visual_type=VisualType.HERO,
+                visual_kind="cover",
+                file_path="/x/cover.png",
+                width=1200,
+                height=630,
+                version=1,
+            )
+        )
         if approved:
-            s.add(ReviewSession(newsletter_id=nl.id, review_status=ReviewStatus.APPROVED,
-                                review_state=ReviewState.APPROVED.value))
+            s.add(
+                ReviewSession(
+                    newsletter_id=nl.id, review_status=ReviewStatus.APPROVED, review_state=ReviewState.APPROVED.value
+                )
+            )
         await s.commit()
         return nid
 
@@ -113,8 +133,10 @@ async def test_beehiiv_real_path_mocked(monkeypatch) -> None:
 
 # --- email preparation --- #
 def test_email_preparation() -> None:
-    pkg = prepare_email({"title": "AI & QE Weekly", "issue_number": 1, "newsletter_draft": CONTENT},
-                        cover_image_url="https://x/cover.png")
+    pkg = prepare_email(
+        {"title": "AI & QE Weekly", "issue_number": 1, "newsletter_draft": CONTENT},
+        cover_image_url="https://x/cover.png",
+    )
     assert pkg["subject"] == "AI & QE Weekly — Issue 1"
     assert "<h1>" in pkg["html"] and "Agents ship" in pkg["html"]
     assert "Subscribe" in pkg["text"]

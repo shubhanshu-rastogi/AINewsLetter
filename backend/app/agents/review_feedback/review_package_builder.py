@@ -44,33 +44,31 @@ async def build_review_package(session: AsyncSession, newsletter_id: str) -> dic
     if newsletter is None:
         return {}
 
-    draft = await session.scalar(
-        select(NewsletterDraft).where(NewsletterDraft.newsletter_id == nid)
-    )
+    draft = await session.scalar(select(NewsletterDraft).where(NewsletterDraft.newsletter_id == nid))
     content = (draft.content if draft else {}) or {}
 
-    linkedin = await session.scalar(
-        select(LinkedInPost).where(LinkedInPost.newsletter_id == nid)
-    )
-    carousel = await session.scalar(
-        select(CarouselOutline).where(CarouselOutline.newsletter_id == nid)
-    )
+    linkedin = await session.scalar(select(LinkedInPost).where(LinkedInPost.newsletter_id == nid))
+    carousel = await session.scalar(select(CarouselOutline).where(CarouselOutline.newsletter_id == nid))
     visuals = (
-        await session.execute(select(GeneratedVisual).where(GeneratedVisual.newsletter_id == nid))
-    ).scalars().all()
+        (await session.execute(select(GeneratedVisual).where(GeneratedVisual.newsletter_id == nid))).scalars().all()
+    )
     selected = (
-        await session.execute(
-            select(CollectedArticle).where(
-                CollectedArticle.is_selected.is_(True),
-                CollectedArticle.verification_status.is_not(None),
+        (
+            await session.execute(
+                select(CollectedArticle).where(
+                    CollectedArticle.is_selected.is_(True),
+                    CollectedArticle.verification_status.is_not(None),
+                )
             )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     history = (
-        await session.execute(
-            select(RegenerationHistory).where(RegenerationHistory.newsletter_id == nid)
-        )
-    ).scalars().all()
+        (await session.execute(select(RegenerationHistory).where(RegenerationHistory.newsletter_id == nid)))
+        .scalars()
+        .all()
+    )
 
     storage = get_storage()
     confidences = [a.overall_confidence_score for a in selected if a.overall_confidence_score]
@@ -86,9 +84,11 @@ async def build_review_package(session: AsyncSession, newsletter_id: str) -> dic
         "carousel_outline": carousel.slides if carousel else None,
         "visuals": [
             {
-                "id": str(v.id), "visual_kind": v.visual_kind,
+                "id": str(v.id),
+                "visual_kind": v.visual_kind,
                 "preview_url": storage.url_for(v.file_path) if v.file_path else None,
-                "width": v.width, "height": v.height,
+                "width": v.width,
+                "height": v.height,
             }
             for v in visuals
         ],
@@ -97,7 +97,8 @@ async def build_review_package(session: AsyncSession, newsletter_id: str) -> dic
             "average_confidence_score": avg_conf,
             "results": [
                 {
-                    "article_id": str(a.id), "title": a.title,
+                    "article_id": str(a.id),
+                    "title": a.title,
                     "verification_status": a.verification_status,
                     "confidence": a.overall_confidence_score,
                 }
@@ -105,13 +106,17 @@ async def build_review_package(session: AsyncSession, newsletter_id: str) -> dic
             ],
         },
         "evidence_summary": [
-            {"article_id": str(a.id), "status": a.verification_status,
-             "confidence_score": a.overall_confidence_score}
+            {"article_id": str(a.id), "status": a.verification_status, "confidence_score": a.overall_confidence_score}
             for a in selected
         ],
         "regeneration_history": [
-            {"section": h.section_name, "from_version": h.from_version,
-             "to_version": h.to_version, "reason": h.reason, "changed_by": h.changed_by}
+            {
+                "section": h.section_name,
+                "from_version": h.from_version,
+                "to_version": h.to_version,
+                "reason": h.reason,
+                "changed_by": h.changed_by,
+            }
             for h in history
         ],
         "approval_options": APPROVAL_OPTIONS,

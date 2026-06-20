@@ -18,19 +18,13 @@ class ArticleRepository(BaseRepository[CollectedArticle]):
         super().__init__(CollectedArticle, session)
 
     async def get_by_url(self, url: str) -> CollectedArticle | None:
-        result = await self.session.execute(
-            select(CollectedArticle).where(CollectedArticle.url == url)
-        )
+        result = await self.session.execute(select(CollectedArticle).where(CollectedArticle.url == url))
         return result.scalar_one_or_none()
 
     async def list_by_status(self, status: ArticleStatus) -> Sequence[CollectedArticle]:
-        result = await self.session.execute(
-            select(CollectedArticle).where(CollectedArticle.status == status)
-        )
+        result = await self.session.execute(select(CollectedArticle).where(CollectedArticle.status == status))
         return result.scalars().all()
 
     async def list_by_source(self, source_id: uuid.UUID) -> Sequence[CollectedArticle]:
-        result = await self.session.execute(
-            select(CollectedArticle).where(CollectedArticle.source_id == source_id)
-        )
+        result = await self.session.execute(select(CollectedArticle).where(CollectedArticle.source_id == source_id))
         return result.scalars().all()

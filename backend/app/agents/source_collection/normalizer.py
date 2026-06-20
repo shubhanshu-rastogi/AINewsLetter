@@ -37,11 +37,7 @@ def normalize_url(url: str) -> str:
     scheme = (parsed.scheme or "https").lower()
     netloc = parsed.netloc.lower()
     path = parsed.path.rstrip("/") or "/"
-    query_parts = [
-        pair
-        for pair in parsed.query.split("&")
-        if pair and not pair.lower().startswith(_TRACKING_PREFIXES)
-    ]
+    query_parts = [pair for pair in parsed.query.split("&") if pair and not pair.lower().startswith(_TRACKING_PREFIXES)]
     query = "&".join(query_parts)
     return urlunparse((scheme, netloc, path, "", query, ""))
 
@@ -61,11 +57,7 @@ def normalize_date(value: Any) -> datetime | None:
         text = value.strip().replace("Z", "+00:00")
         for fmt in (None, "%a, %d %b %Y %H:%M:%S %z", "%Y-%m-%d"):
             try:
-                dt = (
-                    datetime.fromisoformat(text)
-                    if fmt is None
-                    else datetime.strptime(text, fmt)
-                )
+                dt = datetime.fromisoformat(text) if fmt is None else datetime.strptime(text, fmt)
                 return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
             except ValueError:
                 continue

@@ -1,0 +1,76 @@
+{
+  "title": "AI Newsletter — Platform Overview",
+  "uid": "ainl-overview",
+  "schemaVersion": 39,
+  "tags": ["ainewsletter"],
+  "timezone": "utc",
+  "time": {"from": "now-6h", "to": "now"},
+  "refresh": "30s",
+  "templating": {"list": []},
+  "panels": [
+    {
+      "id": 1, "type": "row", "title": "Application Health",
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0}
+    },
+    {
+      "id": 2, "type": "timeseries", "title": "Request rate (req/s)",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 1},
+      "targets": [{"expr": "sum(rate(ainl_request_count[5m])) by (status)", "legendFormat": "{{status}}"}]
+    },
+    {
+      "id": 3, "type": "timeseries", "title": "Request p95 latency (s)",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 1},
+      "targets": [{"expr": "histogram_quantile(0.95, sum(rate(ainl_request_duration_seconds_bucket[5m])) by (le, path))", "legendFormat": "{{path}}"}]
+    },
+    {
+      "id": 10, "type": "row", "title": "Workflow Health",
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 9}
+    },
+    {
+      "id": 11, "type": "timeseries", "title": "Workflow duration p95 (s)",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 10},
+      "targets": [{"expr": "histogram_quantile(0.95, sum(rate(ainl_workflow_duration_seconds_bucket[30m])) by (le))"}]
+    },
+    {
+      "id": 12, "type": "timeseries", "title": "Agent duration p95 by agent (s)",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 10},
+      "targets": [{"expr": "histogram_quantile(0.95, sum(rate(ainl_agent_duration_seconds_bucket[30m])) by (le, agent))", "legendFormat": "{{agent}}"}]
+    },
+    {
+      "id": 13, "type": "stat", "title": "Active review sessions",
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 18},
+      "targets": [{"expr": "ainl_active_review_sessions"}]
+    },
+    {
+      "id": 20, "type": "row", "title": "Newsletter & Publication Metrics",
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 22}
+    },
+    {
+      "id": 21, "type": "timeseries", "title": "Newsletter generation p95 (s)",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 23},
+      "targets": [{"expr": "histogram_quantile(0.95, sum(rate(ainl_newsletter_generation_duration_seconds_bucket[1h])) by (le))"}]
+    },
+    {
+      "id": 22, "type": "timeseries", "title": "Publication success vs failure",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 23},
+      "targets": [
+        {"expr": "sum(rate(ainl_publication_count[15m])) by (channel)", "legendFormat": "ok {{channel}}"},
+        {"expr": "sum(rate(ainl_publication_failure_count[15m])) by (channel)", "legendFormat": "fail {{channel}}"}
+      ]
+    },
+    {
+      "id": 30, "type": "row", "title": "Infrastructure",
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 31}
+    },
+    {
+      "id": 31, "type": "timeseries", "title": "DB query p95 (s)",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 32},
+      "targets": [{"expr": "histogram_quantile(0.95, sum(rate(ainl_database_query_duration_seconds_bucket[5m])) by (le, operation))", "legendFormat": "{{operation}}"}]
+    },
+    {
+      "id": 32, "type": "timeseries", "title": "Rate-limited requests",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 32},
+      "targets": [{"expr": "sum(rate(ainl_rate_limited_requests[5m])) by (group)", "legendFormat": "{{group}}"}]
+    }
+  ]
+}

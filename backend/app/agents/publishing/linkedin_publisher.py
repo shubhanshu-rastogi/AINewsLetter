@@ -54,8 +54,11 @@ async def _simulate(kind: str) -> PublishResult:
     external_id = f"linkedin-{kind}-sim-{uuid.uuid4().hex[:12]}"
     logger.info("linkedin_publication_completed", simulated=True, kind=kind, external_id=external_id)
     return PublishResult(
-        success=True, channel="linkedin", status=PublishState.PUBLISHED,
-        external_id=external_id, metadata={"simulated": True, "kind": kind},
+        success=True,
+        channel="linkedin",
+        status=PublishState.PUBLISHED,
+        external_id=external_id,
+        metadata={"simulated": True, "kind": kind},
     )
 
 
@@ -71,8 +74,11 @@ async def publish_post(package: dict) -> PublishResult:
         raise RetryablePublishError(f"LinkedIn network error: {exc}") from exc
     logger.info("linkedin_publication_completed", kind="post", external_id=external_id)
     return PublishResult(
-        success=True, channel="linkedin", status=PublishState.PUBLISHED,
-        external_id=external_id, metadata={"simulated": False, "kind": "post"},
+        success=True,
+        channel="linkedin",
+        status=PublishState.PUBLISHED,
+        external_id=external_id,
+        metadata={"simulated": False, "kind": "post"},
     )
 
 
@@ -88,6 +94,9 @@ async def publish_carousel(package: dict) -> PublishResult:
         raise RetryablePublishError(f"LinkedIn network error: {exc}") from exc
     logger.info("linkedin_publication_completed", kind="carousel", external_id=external_id)
     return PublishResult(
-        success=True, channel="linkedin", status=PublishState.PUBLISHED,
-        external_id=external_id, metadata={"simulated": False, "kind": "carousel"},
+        success=True,
+        channel="linkedin",
+        status=PublishState.PUBLISHED,
+        external_id=external_id,
+        metadata={"simulated": False, "kind": "carousel"},
     )

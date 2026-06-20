@@ -15,9 +15,8 @@ from app.core.config import settings
 from app.models.carousel_outline import CarouselOutline
 from app.models.collected_article import CollectedArticle
 from app.models.content_source import ContentSource
-from app.models.enums import ArticleStatus, CollectionMethod
+from app.models.enums import ArticleStatus, CollectionMethod, SourceType, VerificationStatus
 from app.models.enums import NewsletterSection as NS
-from app.models.enums import SourceType, VerificationStatus
 from app.models.linkedin_post import LinkedInPost
 from app.models.newsletter_draft import NewsletterDraft
 from app.models.newsletter_section import NewsletterSection
@@ -25,12 +24,37 @@ from app.models.newsletter_version import NewsletterVersion
 from app.models.regeneration_history import RegenerationHistory
 
 SAMPLES = [
-    ("OpenAI ships Agents SDK with orchestration", "OpenAI shipped the Agents SDK with orchestration, guardrails, tracing.", NS.AGENTIC_AI_ENGINEERING, 95),
-    ("Playwright adds AI test generation", "Playwright generates tests from natural language now.", NS.AI_TOOLS_WATCH, 92),
+    (
+        "OpenAI ships Agents SDK with orchestration",
+        "OpenAI shipped the Agents SDK with orchestration, guardrails, tracing.",
+        NS.AGENTIC_AI_ENGINEERING,
+        95,
+    ),
+    (
+        "Playwright adds AI test generation",
+        "Playwright generates tests from natural language now.",
+        NS.AI_TOOLS_WATCH,
+        92,
+    ),
     ("LLM-as-judge evaluation matures", "Rubric-based LLM judging with CI quality gates.", NS.AI_TESTING_QUALITY, 93),
-    ("Enterprise rolls out agentic workflows", "A large enterprise deployed agentic workflows with governance.", NS.ENTERPRISE_AI_ADOPTION, 91),
-    ("Paper on agent-authored tests", "Agents can author maintainable tests with high coverage.", NS.RESEARCH_WATCH, 94),
-    ("SWE-bench Verified hits new high", "Coding agents improve on SWE-bench Verified; gaps remain.", NS.CODING_AGENT_BENCHMARK, 90),
+    (
+        "Enterprise rolls out agentic workflows",
+        "A large enterprise deployed agentic workflows with governance.",
+        NS.ENTERPRISE_AI_ADOPTION,
+        91,
+    ),
+    (
+        "Paper on agent-authored tests",
+        "Agents can author maintainable tests with high coverage.",
+        NS.RESEARCH_WATCH,
+        94,
+    ),
+    (
+        "SWE-bench Verified hits new high",
+        "Coding agents improve on SWE-bench Verified; gaps remain.",
+        NS.CODING_AGENT_BENCHMARK,
+        90,
+    ),
     ("Agent observability trends", "Tracing and eval pipelines trend across vendors.", NS.WEEKLY_TREND_SIGNALS, 90),
 ]
 
@@ -38,21 +62,34 @@ SAMPLES = [
 async def _seed(session_factory, *, samples=SAMPLES) -> None:
     async with session_factory() as s:
         src = ContentSource(
-            source_name="OpenAI", source_type=SourceType.DOCUMENTATION,
-            source_url="https://openai.com", priority=1, credibility_score=0.95,
-            freshness_score=0.9, relevance_score=0.9,
-            preferred_collection_method=CollectionMethod.DOCUMENTATION, category="AI",
+            source_name="OpenAI",
+            source_type=SourceType.DOCUMENTATION,
+            source_url="https://openai.com",
+            priority=1,
+            credibility_score=0.95,
+            freshness_score=0.9,
+            relevance_score=0.9,
+            preferred_collection_method=CollectionMethod.DOCUMENTATION,
+            category="AI",
         )
         s.add(src)
         await s.flush()
         for title, content, section, conf in samples:
-            s.add(CollectedArticle(
-                source_id=src.id, title=title, url=f"https://openai.com/{uuid.uuid4()}",
-                summary=content, raw_content=content, status=ArticleStatus.PROCESSED,
-                is_selected=True, newsletter_section=section, overall_confidence_score=conf,
-                verification_status=VerificationStatus.VERIFIED.value,
-                published_date=datetime.now(timezone.utc),
-            ))
+            s.add(
+                CollectedArticle(
+                    source_id=src.id,
+                    title=title,
+                    url=f"https://openai.com/{uuid.uuid4()}",
+                    summary=content,
+                    raw_content=content,
+                    status=ArticleStatus.PROCESSED,
+                    is_selected=True,
+                    newsletter_section=section,
+                    overall_confidence_score=conf,
+                    verification_status=VerificationStatus.VERIFIED.value,
+                    published_date=datetime.now(timezone.utc),
+                )
+            )
         await s.commit()
 
 
@@ -82,8 +119,16 @@ async def test_section_content_has_required_fields(session_factory) -> None:
     await _seed(session_factory)
     content = (await NewsletterWriterAgent(session_factory).generate_newsletter())["content"]
     story = content["top_stories"][0]
-    for field in ("headline", "what_happened", "why_it_matters", "business_impact",
-                  "engineering_impact", "testing_implications", "key_takeaway", "citation"):
+    for field in (
+        "headline",
+        "what_happened",
+        "why_it_matters",
+        "business_impact",
+        "engineering_impact",
+        "testing_implications",
+        "key_takeaway",
+        "citation",
+    ):
         assert field in story
     assert story["citation"]["source_name"] == "OpenAI"
     assert story["citation"]["source_url"]
@@ -156,10 +201,12 @@ async def test_regenerate_unknown_section_raises(session_factory) -> None:
 
 # --- content rules: review_required marking --- #
 async def test_review_required_articles_marked(session_factory) -> None:
-    await _seed(session_factory, samples=[
-        ("Agentic AI orchestration update", "An orchestration update for agents.",
-         NS.AGENTIC_AI_ENGINEERING, 75),
-    ])
+    await _seed(
+        session_factory,
+        samples=[
+            ("Agentic AI orchestration update", "An orchestration update for agents.", NS.AGENTIC_AI_ENGINEERING, 75),
+        ],
+    )
     async with session_factory() as s:
         art = (await s.execute(select(CollectedArticle))).scalar_one()
         art.verification_status = VerificationStatus.REVIEW_REQUIRED.value
@@ -183,13 +230,21 @@ async def test_workflow_integration(workflow_service, session_factory, monkeypat
 
     monkeypatch.setattr(rss_collector, "fetch_bytes", fake_fetch)
     async with session_factory() as s:
-        s.add(ContentSource(
-            source_name="OpenAI", source_type=SourceType.RSS, source_url="https://openai.com",
-            rss_url="https://openai.com/feed", priority=1, credibility_score=0.95,
-            freshness_score=0.9, relevance_score=0.9,
-            preferred_collection_method=CollectionMethod.RSS,
-            fallback_collection_method=CollectionMethod.WEB, category="AI",
-        ))
+        s.add(
+            ContentSource(
+                source_name="OpenAI",
+                source_type=SourceType.RSS,
+                source_url="https://openai.com",
+                rss_url="https://openai.com/feed",
+                priority=1,
+                credibility_score=0.95,
+                freshness_score=0.9,
+                relevance_score=0.9,
+                preferred_collection_method=CollectionMethod.RSS,
+                fallback_collection_method=CollectionMethod.WEB,
+                category="AI",
+            )
+        )
         await s.commit()
 
     result = await workflow_service.start_newsletter_workflow()

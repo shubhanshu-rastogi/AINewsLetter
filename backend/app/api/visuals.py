@@ -62,18 +62,14 @@ async def generate_carousel(newsletter_id: uuid.UUID) -> dict:
 
 # --- reads --- #
 @router.get("/{newsletter_id}", response_model=list[VisualPreview])
-async def list_visuals(
-    newsletter_id: uuid.UUID, session: AsyncSession = Depends(get_session)
-) -> list[VisualPreview]:
+async def list_visuals(newsletter_id: uuid.UUID, session: AsyncSession = Depends(get_session)) -> list[VisualPreview]:
     stmt = select(GeneratedVisual).where(GeneratedVisual.newsletter_id == newsletter_id)
     visuals = (await session.execute(stmt)).scalars().all()
     return [_preview(v) for v in visuals]
 
 
 @router.get("/{newsletter_id}/cover", response_model=VisualRead)
-async def get_cover(
-    newsletter_id: uuid.UUID, session: AsyncSession = Depends(get_session)
-) -> GeneratedVisual:
+async def get_cover(newsletter_id: uuid.UUID, session: AsyncSession = Depends(get_session)) -> GeneratedVisual:
     visual = await session.scalar(
         select(GeneratedVisual).where(
             GeneratedVisual.newsletter_id == newsletter_id,
@@ -86,9 +82,7 @@ async def get_cover(
 
 
 @router.get("/{newsletter_id}/carousel", response_model=list[VisualRead])
-async def get_carousel(
-    newsletter_id: uuid.UUID, session: AsyncSession = Depends(get_session)
-) -> list[GeneratedVisual]:
+async def get_carousel(newsletter_id: uuid.UUID, session: AsyncSession = Depends(get_session)) -> list[GeneratedVisual]:
     stmt = (
         select(GeneratedVisual)
         .where(

@@ -15,7 +15,10 @@ _CATEGORY_RULES: list[tuple[FeedbackCategory, tuple[str, ...]]] = [
     (FeedbackCategory.FACT_CHECK_ISSUE, ("inaccurate", "wrong", "false", "fact", "confidence", "unverified")),
     (FeedbackCategory.SOURCE_ISSUE, ("source", "citation", "replace the", "replace article", "different article")),
     (FeedbackCategory.VISUAL_CHANGE, ("visual", "slide", "image", "cover", "carousel", "graphic")),
-    (FeedbackCategory.LENGTH_CHANGE, ("shorter", "longer", "length", "trim", "expand", "concise", "too long", "too short")),
+    (
+        FeedbackCategory.LENGTH_CHANGE,
+        ("shorter", "longer", "length", "trim", "expand", "concise", "too long", "too short"),
+    ),
     (FeedbackCategory.TONE_CHANGE, ("tone", "voice", "formal", "casual", "punchy", "hype")),
     (FeedbackCategory.STRUCTURE_CHANGE, ("structure", "reorder", "move", "order", "rearrange")),
 ]

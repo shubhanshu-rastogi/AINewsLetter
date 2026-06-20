@@ -34,9 +34,7 @@ router = APIRouter(tags=["reviews"], dependencies=[Depends(require_reviewer)])
 
 
 @router.get("/{review_session_id}", response_model=ReviewSessionRead)
-async def get_review(
-    review_session_id: uuid.UUID, session: AsyncSession = Depends(get_session)
-) -> ReviewSession:
+async def get_review(review_session_id: uuid.UUID, session: AsyncSession = Depends(get_session)) -> ReviewSession:
     rs = await session.get(ReviewSession, review_session_id)
     if rs is None:
         raise HTTPException(status_code=404, detail="Review session not found.")
@@ -59,9 +57,7 @@ async def get_reviews_for_newsletter(
 async def get_package(
     review_session_id: uuid.UUID, session: AsyncSession = Depends(get_session)
 ) -> ReviewPackageResponse:
-    pkg = await session.scalar(
-        select(ReviewPackage).where(ReviewPackage.review_session_id == review_session_id)
-    )
+    pkg = await session.scalar(select(ReviewPackage).where(ReviewPackage.review_session_id == review_session_id))
     if pkg is None:
         raise HTTPException(status_code=404, detail="Review package not found.")
     return ReviewPackageResponse(review_session_id=str(review_session_id), package=pkg.package or {})
@@ -98,7 +94,8 @@ async def submit_feedback(review_session_id: uuid.UUID, payload: FeedbackRequest
 
 @router.post("/{review_session_id}/approve", response_model=ReviewSessionRead)
 async def approve_review(
-    review_session_id: uuid.UUID, payload: ApprovalRequest,
+    review_session_id: uuid.UUID,
+    payload: ApprovalRequest,
     session: AsyncSession = Depends(get_session),
 ) -> ReviewSession:
     agent = ReviewAgent(AsyncSessionLocal)
@@ -111,7 +108,8 @@ async def approve_review(
 
 @router.post("/{review_session_id}/reject", response_model=ReviewSessionRead)
 async def reject_review(
-    review_session_id: uuid.UUID, payload: RejectionRequest,
+    review_session_id: uuid.UUID,
+    payload: RejectionRequest,
     session: AsyncSession = Depends(get_session),
 ) -> ReviewSession:
     agent = ReviewAgent(AsyncSessionLocal)
@@ -132,7 +130,11 @@ async def regenerate(review_session_id: uuid.UUID, payload: RegenerateRequest) -
             raise HTTPException(status_code=404, detail="Review session not found.")
         newsletter_id = str(review.newsletter_id)
 
-    action = {"type": payload.action_type, "section": payload.section,
-              "slide_number": payload.slide_number, "reason": payload.reason}
+    action = {
+        "type": payload.action_type,
+        "section": payload.section,
+        "slide_number": payload.slide_number,
+        "reason": payload.reason,
+    }
     changed = await agent.execute_plan(newsletter_id, {"actions": [action]})
     return {"newsletter_id": newsletter_id, "changed_sections": changed}

@@ -36,9 +36,7 @@ class CategorizationAgent:
     def assign_topics(self, article: CollectedArticle) -> list[str]:
         return tagger.topics_for(article)
 
-    def update_database(
-        self, article: CollectedArticle, result: ClassificationResult
-    ) -> None:
+    def update_database(self, article: CollectedArticle, result: ClassificationResult) -> None:
         article.primary_category = result.primary_category
         article.secondary_category = result.secondary_category
         article.newsletter_section = result.newsletter_section
@@ -46,9 +44,7 @@ class CategorizationAgent:
         article.keywords = result.keywords
 
     # ----- orchestration ----- #
-    async def _load_articles(
-        self, session: AsyncSession, article_ids: Sequence[str] | None
-    ) -> list[CollectedArticle]:
+    async def _load_articles(self, session: AsyncSession, article_ids: Sequence[str] | None) -> list[CollectedArticle]:
         stmt = select(CollectedArticle)
         if article_ids is not None:
             ids = [uuid.UUID(str(a)) for a in article_ids]
@@ -70,12 +66,8 @@ class CategorizationAgent:
                 if settings.ENABLE_LLM_CLASSIFICATION:
                     enrichment = await llm.llm_classify(article)
                     if enrichment:
-                        result.keywords = sorted(
-                            set(result.keywords) | set(enrichment.get("keywords", []))
-                        )
-                        result.topics = sorted(
-                            set(result.topics) | set(enrichment.get("topics", []))
-                        )
+                        result.keywords = sorted(set(result.keywords) | set(enrichment.get("keywords", [])))
+                        result.topics = sorted(set(result.topics) | set(enrichment.get("topics", [])))
                 self.update_database(article, result)
                 section = result.newsletter_section.value
                 category_map.setdefault(section, []).append(str(article.id))

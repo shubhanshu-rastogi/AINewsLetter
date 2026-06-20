@@ -46,4 +46,4 @@ class PublicationRecord(UUIDMixin, TimestampMixin, Base):
     last_retry_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     channel_metadata: Mapped[dict | None] = mapped_column(JSON)
 
-    newsletter: Mapped["Newsletter"] = relationship(back_populates="publications")
+    newsletter: Mapped[Newsletter] = relationship(back_populates="publications")

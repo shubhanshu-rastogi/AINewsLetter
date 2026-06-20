@@ -12,9 +12,7 @@ from app.repositories.user_repository import UserRepository
 async def test_user_repository_crud(session: AsyncSession) -> None:
     repo = UserRepository(session)
 
-    user = await repo.create(
-        {"email": "u@example.com", "name": "U", "role": UserRole.EDITOR}
-    )
+    user = await repo.create({"email": "u@example.com", "name": "U", "role": UserRole.EDITOR})
     assert user.id is not None
 
     fetched = await repo.get_by_id(user.id)

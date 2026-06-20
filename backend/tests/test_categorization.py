@@ -52,14 +52,22 @@ def _article(title, content="") -> CollectedArticle:
 @pytest.mark.parametrize(
     "title, content, expected",
     [
-        ("OpenAI Agents Guide", "agent orchestration guardrails tool use",
-         NewsletterSection.AGENTIC_AI_ENGINEERING),
-        ("Google Evaluation Docs", "evaluation rubric metrics pass rate llm-as-judge",
-         NewsletterSection.AI_EVALUATION_QA_GATES),
-        ("Ministry of Testing", "test automation quality engineering playwright qa ",
-         NewsletterSection.AI_TESTING_QUALITY),
-        ("SWE-bench results", "swe-bench coding agent leaderboard benchmark pass@",
-         NewsletterSection.CODING_AGENT_BENCHMARK),
+        ("OpenAI Agents Guide", "agent orchestration guardrails tool use", NewsletterSection.AGENTIC_AI_ENGINEERING),
+        (
+            "Google Evaluation Docs",
+            "evaluation rubric metrics pass rate llm-as-judge",
+            NewsletterSection.AI_EVALUATION_QA_GATES,
+        ),
+        (
+            "Ministry of Testing",
+            "test automation quality engineering playwright qa ",
+            NewsletterSection.AI_TESTING_QUALITY,
+        ),
+        (
+            "SWE-bench results",
+            "swe-bench coding agent leaderboard benchmark pass@",
+            NewsletterSection.CODING_AGENT_BENCHMARK,
+        ),
     ],
 )
 def test_classification(title, content, expected) -> None:

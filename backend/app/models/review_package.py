@@ -20,11 +20,13 @@ class ReviewPackage(UUIDMixin, TimestampMixin, Base):
 
     review_session_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("review_sessions.id", ondelete="CASCADE"),
-        nullable=False, unique=True, index=True,
+        nullable=False,
+        unique=True,
+        index=True,
     )
     newsletter_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("newsletters.id", ondelete="CASCADE"), nullable=False, index=True
     )
     package: Mapped[dict | None] = mapped_column(JSON)
 
-    review_session: Mapped["ReviewSession"] = relationship(back_populates="package")
+    review_session: Mapped[ReviewSession] = relationship(back_populates="package")

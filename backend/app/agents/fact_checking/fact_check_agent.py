@@ -55,16 +55,10 @@ class FactCheckAgent:
                 from app.models.enums import ClaimType
 
                 existing = {c.text for c in claims}
-                claims.extend(
-                    Claim(text=t, claim_type=ClaimType.FACT)
-                    for t in extra
-                    if t not in existing
-                )
+                claims.extend(Claim(text=t, claim_type=ClaimType.FACT) for t in extra if t not in existing)
         return claims
 
-    def validate_claims(
-        self, claims, article, tier, corpus
-    ) -> list[ClaimResult]:
+    def validate_claims(self, claims, article, tier, corpus) -> list[ClaimResult]:
         return cross_source_validator.validate_claims(claims, article, tier, corpus)
 
     def _supporting_sources(
@@ -94,12 +88,8 @@ class FactCheckAgent:
             citations_count=citations_count,
         )
 
-    def create_evidence_package(
-        self, article, claim_results, citations, supporting_sources, confidence, notes
-    ) -> dict:
-        return evidence_packager.build_package(
-            article, claim_results, citations, supporting_sources, confidence, notes
-        )
+    def create_evidence_package(self, article, claim_results, citations, supporting_sources, confidence, notes) -> dict:
+        return evidence_packager.build_package(article, claim_results, citations, supporting_sources, confidence, notes)
 
     async def _clear_existing(self, session: AsyncSession, article_id: uuid.UUID) -> None:
         for model in (Citation, VerifiedClaim, FactCheckResult, EvidencePackage):
@@ -121,45 +111,53 @@ class FactCheckAgent:
         await self._clear_existing(session, article.id)
         now = datetime.now(timezone.utc)
 
-        session.add(FactCheckResult(
-            article_id=article.id,
-            url_accessible=url_check.accessible,
-            source_credibility_score=confidence.source_credibility_score,
-            claim_verification_score=confidence.claim_verification_score,
-            cross_source_score=confidence.cross_source_score,
-            freshness_score=confidence.freshness_score,
-            evidence_score=confidence.evidence_score,
-            overall_confidence_score=confidence.overall_confidence_score,
-            verification_status=confidence.verification_status.value,
-            fact_check_notes=notes,
-            verified_at=now,
-        ))
+        session.add(
+            FactCheckResult(
+                article_id=article.id,
+                url_accessible=url_check.accessible,
+                source_credibility_score=confidence.source_credibility_score,
+                claim_verification_score=confidence.claim_verification_score,
+                cross_source_score=confidence.cross_source_score,
+                freshness_score=confidence.freshness_score,
+                evidence_score=confidence.evidence_score,
+                overall_confidence_score=confidence.overall_confidence_score,
+                verification_status=confidence.verification_status.value,
+                fact_check_notes=notes,
+                verified_at=now,
+            )
+        )
         for cite in citations:
-            session.add(Citation(
-                article_id=article.id,
-                title=cite["title"],
-                source_name=cite["source_name"],
-                source_url=cite["source_url"],
-                publication_date=article.published_date if cite["source_url"] == article.url else None,
-                retrieval_timestamp=now,
-            ))
+            session.add(
+                Citation(
+                    article_id=article.id,
+                    title=cite["title"],
+                    source_name=cite["source_name"],
+                    source_url=cite["source_url"],
+                    publication_date=article.published_date if cite["source_url"] == article.url else None,
+                    retrieval_timestamp=now,
+                )
+            )
         for cr in claim_results:
-            session.add(VerifiedClaim(
+            session.add(
+                VerifiedClaim(
+                    article_id=article.id,
+                    claim_text=cr.claim_text,
+                    claim_type=cr.claim_type.value,
+                    verification_status=cr.status.value,
+                    support_score=cr.support_score,
+                    corroborating_sources=cr.corroborating_sources,
+                )
+            )
+        session.add(
+            EvidencePackage(
                 article_id=article.id,
-                claim_text=cr.claim_text,
-                claim_type=cr.claim_type.value,
-                verification_status=cr.status.value,
-                support_score=cr.support_score,
-                corroborating_sources=cr.corroborating_sources,
-            ))
-        session.add(EvidencePackage(
-            article_id=article.id,
-            confidence_score=confidence.overall_confidence_score,
-            verification_status=confidence.verification_status.value,
-            supporting_sources=supporting_sources,
-            verification_notes=notes,
-            package=package,
-        ))
+                confidence_score=confidence.overall_confidence_score,
+                verification_status=confidence.verification_status.value,
+                supporting_sources=supporting_sources,
+                verification_notes=notes,
+                package=package,
+            )
+        )
 
         article.verification_status = confidence.verification_status.value
         article.overall_confidence_score = confidence.overall_confidence_score
@@ -191,21 +189,22 @@ class FactCheckAgent:
             citations_count=len(citations),
         )
 
-        supporting_names = [
-            s.source.source_name if s.source else s.url for s in supporting
-        ]
+        supporting_names = [s.source.source_name if s.source else s.url for s in supporting]
         notes = (
             f"trust={tier.value}; url_accessible={url_check.accessible}; "
             f"date_valid={date_valid}; claims={len(claim_results)}; "
             f"supporting_sources={len(supporting)}"
         )
-        package = self.create_evidence_package(
-            article, claim_results, citations, supporting_names, confidence, notes
-        )
+        package = self.create_evidence_package(article, claim_results, citations, supporting_names, confidence, notes)
         await self.update_database(
-            session, article,
-            url_check=url_check, confidence=confidence, claim_results=claim_results,
-            citations=citations, package=package, supporting_sources=supporting_names,
+            session,
+            article,
+            url_check=url_check,
+            confidence=confidence,
+            claim_results=claim_results,
+            citations=citations,
+            package=package,
+            supporting_sources=supporting_names,
             notes=notes,
         )
 
@@ -236,9 +235,7 @@ class FactCheckAgent:
                 ids = [uuid.UUID(str(a)) for a in article_ids]
                 if not ids:
                     return {"fact_check_results": [], "rejected": [], "selected_article_ids": []}
-                target = list(
-                    (await session.execute(stmt.where(CollectedArticle.id.in_(ids)))).scalars().all()
-                )
+                target = list((await session.execute(stmt.where(CollectedArticle.id.in_(ids)))).scalars().all())
             else:
                 target = list(
                     (await session.execute(stmt.where(CollectedArticle.is_selected.is_(True)))).scalars().all()

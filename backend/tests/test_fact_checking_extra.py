@@ -28,21 +28,31 @@ def test_exception_hierarchy() -> None:
 async def test_get_fact_check_stats_direct(session_factory) -> None:
     async with session_factory() as s:
         src = ContentSource(
-            source_name="Docs", source_type=SourceType.DOCUMENTATION,
-            source_url="https://ex.com", priority=1, credibility_score=0.9,
-            freshness_score=0.8, relevance_score=0.9,
+            source_name="Docs",
+            source_type=SourceType.DOCUMENTATION,
+            source_url="https://ex.com",
+            priority=1,
+            credibility_score=0.9,
+            freshness_score=0.8,
+            relevance_score=0.9,
             preferred_collection_method=CollectionMethod.DOCUMENTATION,
             category="Agentic AI Engineering",
         )
         s.add(src)
         await s.flush()
-        s.add(CollectedArticle(
-            source_id=src.id, title="Agent orchestration framework launch",
-            url="https://ex.com/story",
-            raw_content="The agent achieves 95% accuracy on SWE-bench. OpenAI launches a framework.",
-            summary="x", status=ArticleStatus.PROCESSED, is_selected=True,
-            published_date=datetime.now(timezone.utc), source_category="Agentic AI Engineering",
-        ))
+        s.add(
+            CollectedArticle(
+                source_id=src.id,
+                title="Agent orchestration framework launch",
+                url="https://ex.com/story",
+                raw_content="The agent achieves 95% accuracy on SWE-bench. OpenAI launches a framework.",
+                summary="x",
+                status=ArticleStatus.PROCESSED,
+                is_selected=True,
+                published_date=datetime.now(timezone.utc),
+                source_category="Agentic AI Engineering",
+            )
+        )
         await s.commit()
 
     await FactCheckAgent(session_factory).run()

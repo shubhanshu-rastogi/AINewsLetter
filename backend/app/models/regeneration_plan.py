@@ -24,4 +24,4 @@ class RegenerationPlan(UUIDMixin, TimestampMixin, Base):
     plan: Mapped[dict | None] = mapped_column(JSON)
     executed: Mapped[bool | None] = mapped_column(Boolean)
 
-    review_session: Mapped["ReviewSession"] = relationship(back_populates="regeneration_plans")
+    review_session: Mapped[ReviewSession] = relationship(back_populates="regeneration_plans")

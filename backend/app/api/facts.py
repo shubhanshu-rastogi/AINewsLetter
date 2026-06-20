@@ -39,40 +39,28 @@ async def verify_one(article_id: uuid.UUID) -> dict:
 
 @router.get("/results", response_model=list[FactCheckResultRead])
 async def list_results(session: AsyncSession = Depends(get_session)) -> list[FactCheckResult]:
-    stmt = select(FactCheckResult).order_by(
-        FactCheckResult.overall_confidence_score.desc()
-    )
+    stmt = select(FactCheckResult).order_by(FactCheckResult.overall_confidence_score.desc())
     return list((await session.execute(stmt)).scalars().all())
 
 
 @router.get("/results/{article_id}", response_model=FactCheckResultRead)
-async def get_result(
-    article_id: uuid.UUID, session: AsyncSession = Depends(get_session)
-) -> FactCheckResult:
-    result = await session.scalar(
-        select(FactCheckResult).where(FactCheckResult.article_id == article_id)
-    )
+async def get_result(article_id: uuid.UUID, session: AsyncSession = Depends(get_session)) -> FactCheckResult:
+    result = await session.scalar(select(FactCheckResult).where(FactCheckResult.article_id == article_id))
     if result is None:
         raise HTTPException(status_code=404, detail="Fact-check result not found.")
     return result
 
 
 @router.get("/evidence/{article_id}", response_model=EvidencePackageRead)
-async def get_evidence(
-    article_id: uuid.UUID, session: AsyncSession = Depends(get_session)
-) -> EvidencePackage:
-    package = await session.scalar(
-        select(EvidencePackage).where(EvidencePackage.article_id == article_id)
-    )
+async def get_evidence(article_id: uuid.UUID, session: AsyncSession = Depends(get_session)) -> EvidencePackage:
+    package = await session.scalar(select(EvidencePackage).where(EvidencePackage.article_id == article_id))
     if package is None:
         raise HTTPException(status_code=404, detail="Evidence package not found.")
     return package
 
 
 @router.get("/citations/{article_id}", response_model=list[CitationRead])
-async def get_citations(
-    article_id: uuid.UUID, session: AsyncSession = Depends(get_session)
-) -> list[Citation]:
+async def get_citations(article_id: uuid.UUID, session: AsyncSession = Depends(get_session)) -> list[Citation]:
     stmt = select(Citation).where(Citation.article_id == article_id)
     return list((await session.execute(stmt)).scalars().all())
 

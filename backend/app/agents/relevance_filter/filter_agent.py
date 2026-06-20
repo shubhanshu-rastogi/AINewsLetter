@@ -48,9 +48,7 @@ class RelevanceFilterAgent:
     def calculate_relevance(self, article: CollectedArticle) -> float:
         return scoring_engine.score_article(article).overall_relevance_score
 
-    def rank_articles(
-        self, articles: Sequence[CollectedArticle]
-    ) -> list[CollectedArticle]:
+    def rank_articles(self, articles: Sequence[CollectedArticle]) -> list[CollectedArticle]:
         return ranking_engine.rank_articles(articles)
 
     def select_articles(self, ranked: Sequence[CollectedArticle]) -> SelectionResult:
@@ -62,9 +60,7 @@ class RelevanceFilterAgent:
         return {"selected_article_ids": selected_ids, "category_map": category_map}
 
     # ----- orchestration ----- #
-    async def _load_articles(
-        self, session: AsyncSession, article_ids: Sequence[str] | None
-    ) -> list[CollectedArticle]:
+    async def _load_articles(self, session: AsyncSession, article_ids: Sequence[str] | None) -> list[CollectedArticle]:
         stmt = select(CollectedArticle)
         if article_ids is not None:
             ids = [uuid.UUID(str(a)) for a in article_ids]
@@ -81,9 +77,7 @@ class RelevanceFilterAgent:
             article.status = ArticleStatus.PROCESSED
         logger.info("scoring_completed", scored=len(articles))
 
-    def _dedup_rank_select(
-        self, articles: Sequence[CollectedArticle]
-    ) -> tuple[SelectionResult, int]:
+    def _dedup_rank_select(self, articles: Sequence[CollectedArticle]) -> tuple[SelectionResult, int]:
         groups = duplicate_detector.group_stories(articles)
         merged = duplicate_detector.assign_canonical_ids(groups)
         for group in groups:
@@ -111,9 +105,7 @@ class RelevanceFilterAgent:
     async def select_all(self, article_ids: Sequence[str] | None = None) -> dict[str, Any]:
         """Dedup, rank, and select over already-scored articles."""
         async with self.session_factory() as session:
-            stmt = select(CollectedArticle).where(
-                CollectedArticle.status == ArticleStatus.PROCESSED
-            )
+            stmt = select(CollectedArticle).where(CollectedArticle.status == ArticleStatus.PROCESSED)
             if article_ids is not None:
                 ids = [uuid.UUID(str(a)) for a in article_ids]
                 stmt = select(CollectedArticle).where(CollectedArticle.id.in_(ids))

@@ -15,9 +15,7 @@ def _iso(dt: datetime | None) -> str | None:
     return dt.isoformat() if dt else None
 
 
-def build_citations(
-    article: CollectedArticle, supporting: Sequence[CollectedArticle] = ()
-) -> list[dict]:
+def build_citations(article: CollectedArticle, supporting: Sequence[CollectedArticle] = ()) -> list[dict]:
     """Build citation dicts: the primary source plus any corroborating sources."""
     now = datetime.now(timezone.utc)
     citations: list[dict] = [

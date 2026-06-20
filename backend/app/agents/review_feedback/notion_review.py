@@ -54,7 +54,8 @@ async def create_review_page(package: dict) -> str | None:
         },
         "children": [
             {
-                "object": "block", "type": "paragraph",
+                "object": "block",
+                "type": "paragraph",
                 "paragraph": {"rich_text": [{"text": {"content": _summarize(package)}}]},
             }
         ],

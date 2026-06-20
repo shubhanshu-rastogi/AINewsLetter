@@ -27,4 +27,4 @@ class VerifiedClaim(UUIDMixin, TimestampMixin, Base):
     support_score: Mapped[float | None] = mapped_column(Float)
     corroborating_sources: Mapped[int | None] = mapped_column(Float)
 
-    article: Mapped["CollectedArticle"] = relationship(back_populates="verified_claims")
+    article: Mapped[CollectedArticle] = relationship(back_populates="verified_claims")

@@ -26,3 +26,15 @@ httpx>=0.27
 feedparser>=6.0
 beautifulsoup4>=4.12
 APScheduler>=3.10,<4.0
+
+# ---- Visual generation ----
+Pillow>=10.3
+
+# ---- Observability + ops ----
+prometheus-client>=0.20
+redis>=5.0
+
+# ---- Optional: OpenTelemetry tracing (enable with ENABLE_TRACING=true) ----
+# opentelemetry-sdk>=1.27
+# opentelemetry-instrumentation-fastapi>=0.48b0
+# opentelemetry-exporter-otlp-proto-http>=1.27

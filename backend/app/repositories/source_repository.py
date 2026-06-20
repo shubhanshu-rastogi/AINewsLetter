@@ -16,13 +16,9 @@ class SourceRepository(BaseRepository[ContentSource]):
         super().__init__(ContentSource, session)
 
     async def get_by_url(self, source_url: str) -> ContentSource | None:
-        result = await self.session.execute(
-            select(ContentSource).where(ContentSource.source_url == source_url)
-        )
+        result = await self.session.execute(select(ContentSource).where(ContentSource.source_url == source_url))
         return result.scalar_one_or_none()
 
     async def list_active(self) -> Sequence[ContentSource]:
-        result = await self.session.execute(
-            select(ContentSource).where(ContentSource.is_active.is_(True))
-        )
+        result = await self.session.execute(select(ContentSource).where(ContentSource.is_active.is_(True)))
         return result.scalars().all()

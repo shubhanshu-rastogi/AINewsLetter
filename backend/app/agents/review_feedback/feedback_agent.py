@@ -16,6 +16,7 @@ from app.agents.review_feedback.exceptions import ReviewSessionNotFoundError
 from app.agents.review_feedback.review_agent import ReviewAgent
 from app.agents.visual_generation.visual_agent import VisualGenerationAgent
 from app.core.logging import get_logger
+from app.models.collected_article import CollectedArticle
 from app.models.enums import (
     FeedbackType,
     NewsletterSection,
@@ -23,7 +24,6 @@ from app.models.enums import (
     ReviewState,
     ReviewStatus,
 )
-from app.models.collected_article import CollectedArticle
 from app.models.feedback_item import FeedbackItem
 from app.models.generated_visual import GeneratedVisual
 from app.models.linkedin_post import LinkedInPost
@@ -68,16 +68,12 @@ class FeedbackAgent:
     # Targeted regeneration primitives
     # ------------------------------------------------------------------ #
     async def regenerate_newsletter_section(self, newsletter_id: str, section: str, reason: str) -> None:
-        await self.writer.regenerate_section(
-            newsletter_id, section, reason=reason, changed_by="feedback-agent"
-        )
+        await self.writer.regenerate_section(newsletter_id, section, reason=reason, changed_by="feedback-agent")
 
     async def regenerate_linkedin_post(self, newsletter_id: str) -> None:
         async with self.session_factory() as session:
             nid = uuid.UUID(newsletter_id)
-            draft = await session.scalar(
-                select(NewsletterDraft).where(NewsletterDraft.newsletter_id == nid)
-            )
+            draft = await session.scalar(select(NewsletterDraft).where(NewsletterDraft.newsletter_id == nid))
             post_text = self.writer.generate_linkedin_post(draft.content if draft else {})
             li = await session.scalar(select(LinkedInPost).where(LinkedInPost.newsletter_id == nid))
             if li is not None:
@@ -118,12 +114,20 @@ class FeedbackAgent:
         ns = _SECTION_ENUM.get(section)
         if ns is not None:
             async with self.session_factory() as session:
-                rows = (await session.execute(
-                    select(CollectedArticle).where(
-                        CollectedArticle.newsletter_section == ns,
-                        CollectedArticle.verification_status.is_not(None),
-                    ).order_by(CollectedArticle.overall_confidence_score.desc())
-                )).scalars().all()
+                rows = (
+                    (
+                        await session.execute(
+                            select(CollectedArticle)
+                            .where(
+                                CollectedArticle.newsletter_section == ns,
+                                CollectedArticle.verification_status.is_not(None),
+                            )
+                            .order_by(CollectedArticle.overall_confidence_score.desc())
+                        )
+                    )
+                    .scalars()
+                    .all()
+                )
                 current = [a for a in rows if a.is_selected]
                 alternatives = [a for a in rows if not a.is_selected]
                 if current and alternatives:
@@ -175,27 +179,33 @@ class FeedbackAgent:
             if items:
                 classified = self.classify_feedback(items)
                 for c in classified:
-                    session.add(FeedbackItem(
-                        review_session_id=rs.id,
-                        feedback_text=c.get("feedback_text"),
-                        feedback_type=FeedbackType.GENERAL,
-                        resolution_status=ResolutionStatus.OPEN,
-                        artifact_type=c.get("artifact_type"),
-                        section_name=c.get("section_name"),
-                        feedback_category=c.get("feedback_category"),
-                        severity=c.get("severity"),
-                        action_required=c.get("action_required"),
-                        regeneration_needed=c.get("regeneration_needed"),
-                    ))
+                    session.add(
+                        FeedbackItem(
+                            review_session_id=rs.id,
+                            feedback_text=c.get("feedback_text"),
+                            feedback_type=FeedbackType.GENERAL,
+                            resolution_status=ResolutionStatus.OPEN,
+                            artifact_type=c.get("artifact_type"),
+                            section_name=c.get("section_name"),
+                            feedback_category=c.get("feedback_category"),
+                            severity=c.get("severity"),
+                            action_required=c.get("action_required"),
+                            regeneration_needed=c.get("regeneration_needed"),
+                        )
+                    )
             else:
                 classified = [
                     {
-                        "feedback_text": fi.feedback_text, "artifact_type": fi.artifact_type,
+                        "feedback_text": fi.feedback_text,
+                        "artifact_type": fi.artifact_type,
                         "section_name": fi.section_name,
                         "feedback_category": fi.feedback_category
                         or feedback_classifier.classify(
-                            {"feedback_text": fi.feedback_text, "artifact_type": fi.artifact_type,
-                             "section_name": fi.section_name}
+                            {
+                                "feedback_text": fi.feedback_text,
+                                "artifact_type": fi.artifact_type,
+                                "section_name": fi.section_name,
+                            }
                         ).feedback_category,
                     }
                     for fi in rs.feedback_items
@@ -204,9 +214,12 @@ class FeedbackAgent:
             plan = self.plan_regeneration(classified)
             session.add(RegenerationPlan(review_session_id=rs.id, plan=plan, executed=False))
             await version_tracker.record_version(
-                session, rs.newsletter_id, review_session_id=rs.id,
+                session,
+                rs.newsletter_id,
+                review_session_id=rs.id,
                 feedback_summary=[c.get("feedback_text") for c in classified],
-                regeneration_plan=plan, reviewer_decision="feedback_required",
+                regeneration_plan=plan,
+                reviewer_decision="feedback_required",
             )
             rs.review_state = ReviewState.SUPERSEDED.value
             rs.review_status = ReviewStatus.CHANGES_REQUESTED

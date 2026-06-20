@@ -21,12 +21,19 @@ from app.models.newsletter_draft import NewsletterDraft
 CONTENT = {
     "cover": {"title": "AI & Quality Engineering Weekly", "issue_number": 1},
     "executive_summary": "Weekly briefing.",
-    "top_stories": [{"headline": "Agents ship", "what_happened": "x",
-                     "citation": {"source_name": "OpenAI", "publication_date": "2026-06-18"}}],
-    "tools": [], "testing": {"title": "t", "insight": "i"},
+    "top_stories": [
+        {
+            "headline": "Agents ship",
+            "what_happened": "x",
+            "citation": {"source_name": "OpenAI", "publication_date": "2026-06-18"},
+        }
+    ],
+    "tools": [],
+    "testing": {"title": "t", "insight": "i"},
     "research": {"paper": "r", "key_findings": "k"},
     "benchmark": {"title": "b", "what_improved": "w"},
-    "trends": [], "final_takeaways": ["a"],
+    "trends": [],
+    "final_takeaways": ["a"],
 }
 
 
@@ -93,7 +100,9 @@ def test_get_review_and_package(api_client: TestClient) -> None:
 
 def test_approve_flow(api_client: TestClient) -> None:
     rid = api_client.review_id  # type: ignore[attr-defined]
-    resp = api_client.post(f"/api/reviews/{rid}/approve", json={"approval_status": "APPROVED", "comments": "Looks good."})
+    resp = api_client.post(
+        f"/api/reviews/{rid}/approve", json={"approval_status": "APPROVED", "comments": "Looks good."}
+    )
     assert resp.status_code == 200
     assert resp.json()["review_state"] == "approved"
     assert resp.json()["approved_at"] is not None
@@ -120,10 +129,16 @@ def test_feedback_flow(api_client: TestClient, monkeypatch) -> None:
 
     resp = api_client.post(
         f"/api/reviews/{rid}/feedback",
-        json={"feedback_items": [
-            {"artifact_type": "newsletter_section", "section_name": "Executive Summary",
-             "feedback_text": "Make this shorter and more direct.", "severity": "MEDIUM"}
-        ]},
+        json={
+            "feedback_items": [
+                {
+                    "artifact_type": "newsletter_section",
+                    "section_name": "Executive Summary",
+                    "feedback_text": "Make this shorter and more direct.",
+                    "severity": "MEDIUM",
+                }
+            ]
+        },
     )
     assert resp.status_code == 200
     body = resp.json()
@@ -153,9 +168,10 @@ def test_missing_review_404(api_client: TestClient) -> None:
 
 # --- workflow pause + resume (approval routing through the graph) --- #
 async def test_workflow_pause_and_approve(workflow_service, session_factory, monkeypatch) -> None:
+    from sqlalchemy import func, select
+
     from app.agents.source_collection import rss_collector
     from app.models.review_session import ReviewSession
-    from sqlalchemy import func, select
 
     RSS = b"""<?xml version='1.0'?><rss version='2.0'><channel>
     <item><title>Agentic AI orchestration framework launches</title>
@@ -170,13 +186,21 @@ async def test_workflow_pause_and_approve(workflow_service, session_factory, mon
     from app.models.enums import CollectionMethod, SourceType
 
     async with session_factory() as s:
-        s.add(ContentSource(
-            source_name="OpenAI", source_type=SourceType.RSS, source_url="https://openai.com",
-            rss_url="https://openai.com/feed", priority=1, credibility_score=0.95,
-            freshness_score=0.9, relevance_score=0.9,
-            preferred_collection_method=CollectionMethod.RSS,
-            fallback_collection_method=CollectionMethod.WEB, category="AI",
-        ))
+        s.add(
+            ContentSource(
+                source_name="OpenAI",
+                source_type=SourceType.RSS,
+                source_url="https://openai.com",
+                rss_url="https://openai.com/feed",
+                priority=1,
+                credibility_score=0.95,
+                freshness_score=0.9,
+                relevance_score=0.9,
+                preferred_collection_method=CollectionMethod.RSS,
+                fallback_collection_method=CollectionMethod.WEB,
+                category="AI",
+            )
+        )
         await s.commit()
 
     started = await workflow_service.start_newsletter_workflow()

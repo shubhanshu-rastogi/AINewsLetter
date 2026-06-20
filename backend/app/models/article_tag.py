@@ -17,9 +17,7 @@ if TYPE_CHECKING:
 
 class ArticleTag(UUIDMixin, TimestampMixin, Base):
     __tablename__ = "article_tags"
-    __table_args__ = (
-        UniqueConstraint("article_id", "tag_name", name="article_tag"),
-    )
+    __table_args__ = (UniqueConstraint("article_id", "tag_name", name="article_tag"),)
 
     article_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("collected_articles.id", ondelete="CASCADE"),
@@ -28,4 +26,4 @@ class ArticleTag(UUIDMixin, TimestampMixin, Base):
     )
     tag_name: Mapped[str] = mapped_column(String(100), nullable=False)
 
-    article: Mapped["CollectedArticle"] = relationship(back_populates="tags")
+    article: Mapped[CollectedArticle] = relationship(back_populates="tags")

@@ -25,9 +25,14 @@ from app.services.relevance_stats import (
 
 def _source() -> ContentSource:
     return ContentSource(
-        id=uuid.uuid4(), source_name="S", source_type=SourceType.DOCUMENTATION,
-        source_url="https://ex.com", priority=1, credibility_score=0.9,
-        freshness_score=0.8, relevance_score=0.9,
+        id=uuid.uuid4(),
+        source_name="S",
+        source_type=SourceType.DOCUMENTATION,
+        source_url="https://ex.com",
+        priority=1,
+        credibility_score=0.9,
+        freshness_score=0.8,
+        relevance_score=0.9,
         preferred_collection_method=CollectionMethod.DOCUMENTATION,
         category="Agentic AI Engineering",
     )
@@ -39,22 +44,26 @@ async def _seed(session_factory) -> None:
         s.add(src)
         await s.flush()
         for i in range(3):
-            s.add(CollectedArticle(
-                source_id=src.id,
-                title=f"AI agent orchestration evaluation {i}",
-                url=f"https://ex.com/x{i}",
-                raw_content="agents orchestration architecture evaluation enterprise testing " * 8,
-                status=ArticleStatus.NEW,
-                credibility_score=0.9,
-                source_category="Agentic AI Engineering",
-            ))
+            s.add(
+                CollectedArticle(
+                    source_id=src.id,
+                    title=f"AI agent orchestration evaluation {i}",
+                    url=f"https://ex.com/x{i}",
+                    raw_content="agents orchestration architecture evaluation enterprise testing " * 8,
+                    status=ArticleStatus.NEW,
+                    credibility_score=0.9,
+                    source_category="Agentic AI Engineering",
+                )
+            )
         await s.commit()
 
 
 def test_topics_for() -> None:
     art = CollectedArticle(
-        id=uuid.uuid4(), source_id=uuid.uuid4(),
-        title="Enterprise AI testing", url="https://ex.com/t",
+        id=uuid.uuid4(),
+        source_id=uuid.uuid4(),
+        title="Enterprise AI testing",
+        url="https://ex.com/t",
         raw_content="enterprise governance testing quality engineering agents",
     )
     topics = topics_for(art)

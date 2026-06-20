@@ -60,16 +60,12 @@ async def collect_all(session: AsyncSession = Depends(get_session)) -> dict:
 
 @router.get("/strategy", response_model=list[SourceStrategyView])
 async def get_strategy(session: AsyncSession = Depends(get_session)) -> list[dict]:
-    sources = (
-        await session.execute(select(ContentSource).where(ContentSource.is_active.is_(True)))
-    ).scalars().all()
+    sources = (await session.execute(select(ContentSource).where(ContentSource.is_active.is_(True)))).scalars().all()
     return [strategy_view(s) for s in order_sources(sources)]
 
 
 @router.get("/{source_id}", response_model=SourceRead)
-async def get_source(
-    source_id: uuid.UUID, session: AsyncSession = Depends(get_session)
-) -> ContentSource:
+async def get_source(source_id: uuid.UUID, session: AsyncSession = Depends(get_session)) -> ContentSource:
     source = await SourceRepository(session).get_by_id(source_id)
     if source is None:
         raise HTTPException(status_code=404, detail="Source not found.")
@@ -90,9 +86,7 @@ async def update_source(
 
 
 @router.delete("/{source_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_source(
-    source_id: uuid.UUID, session: AsyncSession = Depends(get_session)
-) -> None:
+async def delete_source(source_id: uuid.UUID, session: AsyncSession = Depends(get_session)) -> None:
     repo = SourceRepository(session)
     source = await repo.get_by_id(source_id)
     if source is None:

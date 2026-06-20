@@ -26,4 +26,4 @@ class LinkedInPost(UUIDMixin, TimestampMixin, Base):
     hashtags: Mapped[list | None] = mapped_column(JSON)
     char_count: Mapped[int | None] = mapped_column(Integer)
 
-    newsletter: Mapped["Newsletter"] = relationship(back_populates="linkedin_posts")
+    newsletter: Mapped[Newsletter] = relationship(back_populates="linkedin_posts")

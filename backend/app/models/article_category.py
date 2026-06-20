@@ -20,7 +20,7 @@ class ArticleCategory(UUIDMixin, TimestampMixin, Base):
     name: Mapped[str] = mapped_column(String(100), unique=True, index=True, nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
 
-    articles: Mapped[list["CollectedArticle"]] = relationship(
+    articles: Mapped[list[CollectedArticle]] = relationship(
         back_populates="category",
         lazy="selectin",
     )

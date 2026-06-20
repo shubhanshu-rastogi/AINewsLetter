@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from typing import TYPE_CHECKING
 
-from sqlalchemy import JSON, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base_class import Base
@@ -21,13 +21,11 @@ class ReviewVersion(UUIDMixin, TimestampMixin, Base):
     newsletter_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("newsletters.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    review_session_id: Mapped[uuid.UUID | None] = mapped_column(
-        ForeignKey("review_sessions.id", ondelete="SET NULL")
-    )
+    review_session_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("review_sessions.id", ondelete="SET NULL"))
     version_number: Mapped[int] = mapped_column(Integer, nullable=False)
     feedback_summary: Mapped[list | None] = mapped_column(JSON)
     regeneration_plan: Mapped[dict | None] = mapped_column(JSON)
     changed_sections: Mapped[list | None] = mapped_column(JSON)
     reviewer_decision: Mapped[str | None] = mapped_column(String(40))
 
-    newsletter: Mapped["Newsletter"] = relationship(back_populates="review_versions")
+    newsletter: Mapped[Newsletter] = relationship(back_populates="review_versions")

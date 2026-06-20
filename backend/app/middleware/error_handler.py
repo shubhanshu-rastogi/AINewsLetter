@@ -19,9 +19,7 @@ logger = get_logger("errors")
 
 
 def _error_response(status_code: int, code: str, message: str, details=None) -> JSONResponse:
-    payload = ErrorResponse(
-        error=ErrorDetail(code=code, message=message, details=details)
-    )
+    payload = ErrorResponse(error=ErrorDetail(code=code, message=message, details=details))
     return JSONResponse(status_code=status_code, content=payload.model_dump())
 
 
@@ -34,9 +32,7 @@ def register_exception_handlers(app: FastAPI) -> None:
         return _error_response(exc.status_code, exc.code, exc.message, exc.details)
 
     @app.exception_handler(RequestValidationError)
-    async def handle_validation_error(
-        _: Request, exc: RequestValidationError
-    ) -> JSONResponse:
+    async def handle_validation_error(_: Request, exc: RequestValidationError) -> JSONResponse:
         return _error_response(
             status.HTTP_422_UNPROCESSABLE_ENTITY,
             "validation_error",
@@ -45,9 +41,7 @@ def register_exception_handlers(app: FastAPI) -> None:
         )
 
     @app.exception_handler(StarletteHTTPException)
-    async def handle_http_exception(
-        _: Request, exc: StarletteHTTPException
-    ) -> JSONResponse:
+    async def handle_http_exception(_: Request, exc: StarletteHTTPException) -> JSONResponse:
         return _error_response(
             exc.status_code,
             "http_error",

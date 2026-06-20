@@ -140,13 +140,12 @@ def test_ranking_engine_orders_and_positions() -> None:
 def test_selection_rules_respect_quota() -> None:
     arts = []
     for i in range(8):  # 8 strong "stories"
-        arts.append(_article(url=f"https://x.com/s{i}", overall=90 - i,
-                             section=NewsletterSection.AGENTIC_AI_ENGINEERING))
+        arts.append(
+            _article(url=f"https://x.com/s{i}", overall=90 - i, section=NewsletterSection.AGENTIC_AI_ENGINEERING)
+        )
     for i in range(5):  # 5 tools
-        arts.append(_article(url=f"https://x.com/t{i}", overall=50 - i,
-                             section=NewsletterSection.AI_TOOLS_WATCH))
-    arts.append(_article(url="https://x.com/r", overall=40,
-                         section=NewsletterSection.RESEARCH_WATCH))
+        arts.append(_article(url=f"https://x.com/t{i}", overall=50 - i, section=NewsletterSection.AI_TOOLS_WATCH))
+    arts.append(_article(url="https://x.com/r", overall=40, section=NewsletterSection.RESEARCH_WATCH))
 
     ranked = ranking_engine.rank_articles(arts)
     result = select_articles(ranked)
@@ -207,9 +206,7 @@ async def test_filter_agent_persists_and_selects(session_factory) -> None:
             .where(CollectedArticle.overall_relevance_score.is_not(None))
         )
         selected = await s.scalar(
-            select(func.count())
-            .select_from(CollectedArticle)
-            .where(CollectedArticle.is_selected.is_(True))
+            select(func.count()).select_from(CollectedArticle).where(CollectedArticle.is_selected.is_(True))
         )
     assert scored == 3
     assert selected >= 1

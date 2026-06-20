@@ -20,9 +20,7 @@ class ContentSource(UUIDMixin, TimestampMixin, Base):
     __tablename__ = "content_sources"
 
     source_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    source_type: Mapped[SourceType] = mapped_column(
-        str_enum(SourceType, "source_type"), nullable=False, index=True
-    )
+    source_type: Mapped[SourceType] = mapped_column(str_enum(SourceType, "source_type"), nullable=False, index=True)
     source_url: Mapped[str] = mapped_column(String(2048), nullable=False)
     rss_url: Mapped[str | None] = mapped_column(String(2048))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False, index=True)
@@ -48,7 +46,7 @@ class ContentSource(UUIDMixin, TimestampMixin, Base):
         str_enum(NewsletterSection, "source_newsletter_section", length=64)
     )
 
-    articles: Mapped[list["CollectedArticle"]] = relationship(
+    articles: Mapped[list[CollectedArticle]] = relationship(
         back_populates="source",
         cascade="all, delete-orphan",
         lazy="selectin",

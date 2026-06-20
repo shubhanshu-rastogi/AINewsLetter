@@ -30,6 +30,9 @@ settings.FACT_CHECK_VERIFY_URLS = False
 import tempfile as _tempfile  # noqa: E402
 
 settings.VISUAL_STORAGE_ROOT = _tempfile.mkdtemp(prefix="ainl-visuals-")
+# Rate limiting uses a process-wide counter; disable by default so it cannot
+# cause cross-test flakiness. Dedicated tests enable it explicitly.
+settings.ENABLE_RATE_LIMIT = False
 
 from app.db.base import Base  # noqa: E402
 from app.main import app  # noqa: E402

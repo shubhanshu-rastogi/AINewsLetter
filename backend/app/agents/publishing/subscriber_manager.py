@@ -49,9 +49,7 @@ class SubscriberManager:
             logger.info("subscriber_unsubscribed", email=email)
             return sub
 
-    async def list_subscribers(
-        self, status: SubscriberStatus | None = None, limit: int = 200
-    ) -> Sequence[Subscriber]:
+    async def list_subscribers(self, status: SubscriberStatus | None = None, limit: int = 200) -> Sequence[Subscriber]:
         async with self.session_factory() as session:
             stmt = select(Subscriber).order_by(Subscriber.created_at.desc()).limit(limit)
             if status is not None:
@@ -61,9 +59,7 @@ class SubscriberManager:
     async def statistics(self) -> dict:
         async with self.session_factory() as session:
             total = await session.scalar(select(func.count()).select_from(Subscriber))
-            rows = await session.execute(
-                select(Subscriber.status, func.count()).group_by(Subscriber.status)
-            )
+            rows = await session.execute(select(Subscriber.status, func.count()).group_by(Subscriber.status))
             by_status = {str(k): c for k, c in rows}
             active = by_status.get(SubscriberStatus.ACTIVE.value, 0)
         return {
@@ -76,8 +72,9 @@ class SubscriberManager:
 
     async def active_count(self) -> int:
         async with self.session_factory() as session:
-            return int(await session.scalar(
-                select(func.count()).select_from(Subscriber).where(
-                    Subscriber.status == SubscriberStatus.ACTIVE
+            return int(
+                await session.scalar(
+                    select(func.count()).select_from(Subscriber).where(Subscriber.status == SubscriberStatus.ACTIVE)
                 )
-            ) or 0)
+                or 0
+            )

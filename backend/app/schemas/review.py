@@ -36,7 +36,10 @@ class RejectionRequest(BaseModel):
 
 
 class RegenerateRequest(BaseModel):
-    action_type: str = Field(..., description="regenerate_section|regenerate_linkedin|regenerate_carousel_slide|regenerate_cover|replace_article_and_regenerate_section")
+    action_type: str = Field(
+        ...,
+        description="regenerate_section|regenerate_linkedin|regenerate_carousel_slide|regenerate_cover|replace_article_and_regenerate_section",
+    )
     section: str | None = None
     slide_number: int | None = None
     reason: str = "manual regeneration"

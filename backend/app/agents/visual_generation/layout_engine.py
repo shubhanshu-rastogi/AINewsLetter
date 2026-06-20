@@ -26,7 +26,7 @@ _TTF_BOLD = [
 
 @lru_cache(maxsize=64)
 def get_font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
-    for path in (_TTF_BOLD if bold else _TTF_CANDIDATES):
+    for path in _TTF_BOLD if bold else _TTF_CANDIDATES:
         try:
             return ImageFont.truetype(path, size)
         except OSError:
@@ -72,8 +72,13 @@ def wrap_text(draw: ImageDraw.ImageDraw, text: str, font, max_width: int) -> lis
 
 
 def draw_paragraph(
-    draw: ImageDraw.ImageDraw, xy: tuple[int, int], text: str, font, fill,
-    max_width: int, line_spacing: int = 10,
+    draw: ImageDraw.ImageDraw,
+    xy: tuple[int, int],
+    text: str,
+    font,
+    fill,
+    max_width: int,
+    line_spacing: int = 10,
 ) -> int:
     x, y = xy
     for line in wrap_text(draw, text, font, max_width):
@@ -89,8 +94,13 @@ def accent_bar(draw: ImageDraw.ImageDraw, xy: tuple[int, int], width: int, color
 
 
 def draw_footer(
-    draw: ImageDraw.ImageDraw, size: tuple[int, int], brand: BrandConfig,
-    left_text: str, right_text: str = "", *, fill=None,
+    draw: ImageDraw.ImageDraw,
+    size: tuple[int, int],
+    brand: BrandConfig,
+    left_text: str,
+    right_text: str = "",
+    *,
+    fill=None,
 ) -> None:
     width, height = size
     font = get_font(22)

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import uuid
 
 import pytest
 from fastapi.testclient import TestClient
@@ -30,8 +29,12 @@ CONTENT = {
     "cover": {"title": "AI & Quality Engineering Weekly", "issue_number": 1},
     "executive_summary": "Briefing.",
     "top_stories": [{"headline": "Agents ship", "what_happened": "x"}],
-    "tools": [], "testing": {"title": "t"}, "research": {"paper": "r"},
-    "benchmark": {"title": "b"}, "trends": [], "final_takeaways": ["z"],
+    "tools": [],
+    "testing": {"title": "t"},
+    "research": {"paper": "r"},
+    "benchmark": {"title": "b"},
+    "trends": [],
+    "final_takeaways": ["z"],
 }
 
 
@@ -46,17 +49,28 @@ def api_client(tmp_path):
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
         async with sf() as s:
-            nl = Newsletter(title="AI & Quality Engineering Weekly", issue_number=1,
-                            status=NewsletterStatus.APPROVED)
+            nl = Newsletter(title="AI & Quality Engineering Weekly", issue_number=1, status=NewsletterStatus.APPROVED)
             s.add(nl)
             await s.flush()
             s.add(NewsletterDraft(newsletter_id=nl.id, content=CONTENT, current_version=1))
             s.add(LinkedInPost(newsletter_id=nl.id, body="post", hashtags=["#AI"]))
             s.add(CarouselOutline(newsletter_id=nl.id, slides=[{"slide": 1}]))
-            s.add(GeneratedVisual(newsletter_id=nl.id, visual_type=VisualType.HERO,
-                                  visual_kind="cover", file_path="/x/cover.png", width=1200, height=630, version=1))
-            s.add(ReviewSession(newsletter_id=nl.id, review_status=ReviewStatus.APPROVED,
-                                review_state=ReviewState.APPROVED.value))
+            s.add(
+                GeneratedVisual(
+                    newsletter_id=nl.id,
+                    visual_type=VisualType.HERO,
+                    visual_kind="cover",
+                    file_path="/x/cover.png",
+                    width=1200,
+                    height=630,
+                    version=1,
+                )
+            )
+            s.add(
+                ReviewSession(
+                    newsletter_id=nl.id, review_status=ReviewStatus.APPROVED, review_state=ReviewState.APPROVED.value
+                )
+            )
             await s.commit()
             ids["newsletter_id"] = str(nl.id)
 
@@ -179,13 +193,21 @@ async def test_workflow_publishes_after_approval(workflow_service, session_facto
 
     monkeypatch.setattr(rss_collector, "fetch_bytes", fake_fetch)
     async with session_factory() as s:
-        s.add(ContentSource(
-            source_name="OpenAI", source_type=SourceType.RSS, source_url="https://openai.com",
-            rss_url="https://openai.com/feed", priority=1, credibility_score=0.95,
-            freshness_score=0.9, relevance_score=0.9,
-            preferred_collection_method=CollectionMethod.RSS,
-            fallback_collection_method=CollectionMethod.WEB, category="AI",
-        ))
+        s.add(
+            ContentSource(
+                source_name="OpenAI",
+                source_type=SourceType.RSS,
+                source_url="https://openai.com",
+                rss_url="https://openai.com/feed",
+                priority=1,
+                credibility_score=0.95,
+                freshness_score=0.9,
+                relevance_score=0.9,
+                preferred_collection_method=CollectionMethod.RSS,
+                fallback_collection_method=CollectionMethod.WEB,
+                category="AI",
+            )
+        )
         await s.commit()
 
     started = await workflow_service.start_newsletter_workflow()

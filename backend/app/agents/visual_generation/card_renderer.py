@@ -46,8 +46,7 @@ def render_card(
         draw.text((width - margin - bw, margin), badge, font=bfont, fill=brand.muted_color)
 
     # Logo / brand name top-left.
-    draw.text((margin, margin), brand.logo_text, font=le.get_font(26, bold=True),
-              fill=brand.inverse_text_color)
+    draw.text((margin, margin), brand.logo_text, font=le.get_font(26, bold=True), fill=brand.inverse_text_color)
 
     # Section label + accent bar.
     y = margin + 90
@@ -59,20 +58,38 @@ def render_card(
 
     # Title (large).
     title_font = le.get_font(56, bold=True)
-    y = le.draw_paragraph(draw, (margin, y), _truncate_words(title, MAX_TITLE_WORDS),
-                          title_font, brand.inverse_text_color, content_w, line_spacing=8)
+    y = le.draw_paragraph(
+        draw,
+        (margin, y),
+        _truncate_words(title, MAX_TITLE_WORDS),
+        title_font,
+        brand.inverse_text_color,
+        content_w,
+        line_spacing=8,
+    )
     y += 16
 
     # Body.
     body_font = le.get_font(32)
-    le.draw_paragraph(draw, (margin, y), _truncate_words(body, MAX_BODY_WORDS),
-                      body_font, brand.surface_color, content_w, line_spacing=12)
+    le.draw_paragraph(
+        draw,
+        (margin, y),
+        _truncate_words(body, MAX_BODY_WORDS),
+        body_font,
+        brand.surface_color,
+        content_w,
+        line_spacing=12,
+    )
 
     # Attribution (source) above footer.
     if attribution:
         attr_font = le.get_font(20)
-        draw.text((margin, height - margin // 2 - 56),
-                  _truncate_words(attribution, 16), font=attr_font, fill=brand.muted_color)
+        draw.text(
+            (margin, height - margin // 2 - 56),
+            _truncate_words(attribution, 16),
+            font=attr_font,
+            fill=brand.muted_color,
+        )
 
     le.draw_footer(draw, size, brand, _truncate_words(footer_left, MAX_FOOTER_WORDS), footer_right)
     return img
@@ -90,36 +107,52 @@ def _attr(citation: dict | None) -> str | None:
 
 def summary_card(brand: BrandConfig, story: dict, issue: int | None, size) -> Image.Image:
     return render_card(
-        brand, size=size, label="Top Story", title=story.get("headline", "Top Story"),
+        brand,
+        size=size,
+        label="Top Story",
+        title=story.get("headline", "Top Story"),
         body=story.get("what_happened", ""),
-        footer_left=brand.footer_text, footer_right=f"Issue {issue} · {le.utcstamp()}",
+        footer_left=brand.footer_text,
+        footer_right=f"Issue {issue} · {le.utcstamp()}",
         attribution=_attr(story.get("citation")),
     )
 
 
 def tool_card(brand: BrandConfig, tool: dict, issue: int | None, size) -> Image.Image:
     return render_card(
-        brand, size=size, label="AI Tool Worth Watching", title=tool.get("name", "Tool"),
+        brand,
+        size=size,
+        label="AI Tool Worth Watching",
+        title=tool.get("name", "Tool"),
         body=tool.get("what_it_does", ""),
-        footer_left=brand.footer_text, footer_right=f"Issue {issue} · {le.utcstamp()}",
+        footer_left=brand.footer_text,
+        footer_right=f"Issue {issue} · {le.utcstamp()}",
         attribution=_attr(tool.get("citation")),
     )
 
 
 def research_card(brand: BrandConfig, research: dict, issue: int | None, size) -> Image.Image:
     return render_card(
-        brand, size=size, label="Research Watch", title=research.get("paper", "Research"),
+        brand,
+        size=size,
+        label="Research Watch",
+        title=research.get("paper", "Research"),
         body=research.get("key_findings", ""),
-        footer_left=brand.footer_text, footer_right=f"Issue {issue} · {le.utcstamp()}",
+        footer_left=brand.footer_text,
+        footer_right=f"Issue {issue} · {le.utcstamp()}",
         attribution=_attr(research.get("citation")),
     )
 
 
 def benchmark_card(brand: BrandConfig, benchmark: dict, issue: int | None, size) -> Image.Image:
     return render_card(
-        brand, size=size, label="Coding Agent Benchmark", title=benchmark.get("title", "Benchmark"),
+        brand,
+        size=size,
+        label="Coding Agent Benchmark",
+        title=benchmark.get("title", "Benchmark"),
         body=benchmark.get("what_improved", ""),
-        footer_left=brand.footer_text, footer_right=f"Issue {issue} · {le.utcstamp()}",
+        footer_left=brand.footer_text,
+        footer_right=f"Issue {issue} · {le.utcstamp()}",
         attribution=_attr(benchmark.get("citation")),
     )
 
@@ -127,7 +160,11 @@ def benchmark_card(brand: BrandConfig, benchmark: dict, issue: int | None, size)
 def takeaway_card(brand: BrandConfig, takeaways: list[str], issue: int | None, size) -> Image.Image:
     body = " • ".join(takeaways[:3]) if takeaways else "Pilot before broad adoption."
     return render_card(
-        brand, size=size, label="Final Takeaways", title="What to do this week",
-        body=body, footer_left=brand.footer_text,
+        brand,
+        size=size,
+        label="Final Takeaways",
+        title="What to do this week",
+        body=body,
+        footer_left=brand.footer_text,
         footer_right=f"Issue {issue} · {le.utcstamp()}",
     )

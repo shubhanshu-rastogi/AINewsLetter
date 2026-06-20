@@ -17,10 +17,21 @@ logger = get_logger("factcheck.source")
 
 # Domain -> trust tier (substring match on netloc).
 HIGH_TRUST_DOMAINS = [
-    "openai.com", "anthropic.com", "google.com", "cloud.google.com",
-    "microsoft.com", "learn.microsoft.com", "aws.amazon.com", "amazon.com",
-    "arxiv.org", "thoughtworks.com", "ministryoftesting.com", "infoq.com",
-    "deeplearning.ai", "adk.dev", "swebench.com",
+    "openai.com",
+    "anthropic.com",
+    "google.com",
+    "cloud.google.com",
+    "microsoft.com",
+    "learn.microsoft.com",
+    "aws.amazon.com",
+    "amazon.com",
+    "arxiv.org",
+    "thoughtworks.com",
+    "ministryoftesting.com",
+    "infoq.com",
+    "deeplearning.ai",
+    "adk.dev",
+    "swebench.com",
 ]
 MEDIUM_TRUST_DOMAINS = ["tldr.tech", "bensbites.com", "latent.space"]
 

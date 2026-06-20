@@ -57,8 +57,11 @@ async def publish(package: dict) -> PublishResult:
         external_id = f"beehiiv-sim-{uuid.uuid4().hex[:12]}"
         logger.info("beehiiv_publication_completed", simulated=True, external_id=external_id)
         return PublishResult(
-            success=True, channel="beehiiv", status=PublishState.PUBLISHED,
-            external_id=external_id, metadata={"simulated": True},
+            success=True,
+            channel="beehiiv",
+            status=PublishState.PUBLISHED,
+            external_id=external_id,
+            metadata={"simulated": True},
         )
 
     try:
@@ -70,6 +73,9 @@ async def publish(package: dict) -> PublishResult:
 
     logger.info("beehiiv_publication_completed", external_id=external_id)
     return PublishResult(
-        success=True, channel="beehiiv", status=PublishState.PUBLISHED,
-        external_id=external_id, metadata={"simulated": False},
+        success=True,
+        channel="beehiiv",
+        status=PublishState.PUBLISHED,
+        external_id=external_id,
+        metadata={"simulated": False},
     )

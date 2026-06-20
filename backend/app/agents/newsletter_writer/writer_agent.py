@@ -34,8 +34,15 @@ MAX_STORIES = 5
 MAX_TOOLS = 3
 MAX_TRENDS = 3
 REGENERATABLE = {
-    "executive_summary", "top_stories", "tools", "testing", "enterprise",
-    "research", "benchmark", "trends", "final_takeaways",
+    "executive_summary",
+    "top_stories",
+    "tools",
+    "testing",
+    "enterprise",
+    "research",
+    "benchmark",
+    "trends",
+    "final_takeaways",
 }
 _PUBLISHABLE = {VerificationStatus.VERIFIED.value, VerificationStatus.REVIEW_REQUIRED.value}
 
@@ -48,12 +55,8 @@ class NewsletterWriterAgent:
     # ------------------------------------------------------------------ #
     # Article loading / grouping
     # ------------------------------------------------------------------ #
-    async def _load_articles(
-        self, session: AsyncSession, article_ids: Sequence[str] | None
-    ) -> list[CollectedArticle]:
-        stmt = select(CollectedArticle).where(
-            CollectedArticle.verification_status.in_(_PUBLISHABLE)
-        )
+    async def _load_articles(self, session: AsyncSession, article_ids: Sequence[str] | None) -> list[CollectedArticle]:
+        stmt = select(CollectedArticle).where(CollectedArticle.verification_status.in_(_PUBLISHABLE))
         if article_ids is not None:
             ids = [uuid.UUID(str(a)) for a in article_ids]
             if not ids:
@@ -120,9 +123,7 @@ class NewsletterWriterAgent:
     # ------------------------------------------------------------------ #
     # Content assembly
     # ------------------------------------------------------------------ #
-    def _build_content(
-        self, articles: Sequence[CollectedArticle], issue_number: int | None
-    ) -> dict:
+    def _build_content(self, articles: Sequence[CollectedArticle], issue_number: int | None) -> dict:
         top_stories = self.generate_top_stories(articles)
         content: dict[str, Any] = {
             "cover": {
@@ -164,9 +165,7 @@ class NewsletterWriterAgent:
     # ------------------------------------------------------------------ #
     # Persistence
     # ------------------------------------------------------------------ #
-    async def _resolve_newsletter(
-        self, session: AsyncSession, newsletter_id: str | None
-    ) -> Newsletter:
+    async def _resolve_newsletter(self, session: AsyncSession, newsletter_id: str | None) -> Newsletter:
         if newsletter_id:
             nl = await session.get(Newsletter, uuid.UUID(str(newsletter_id)))
             if nl is not None:
@@ -181,23 +180,33 @@ class NewsletterWriterAgent:
         await session.flush()
         return nl
 
-    async def _persist_sections(
-        self, session: AsyncSession, newsletter_id: uuid.UUID, content: dict
-    ) -> int:
-        await session.execute(
-            delete(NewsletterSection).where(NewsletterSection.newsletter_id == newsletter_id)
-        )
+    async def _persist_sections(self, session: AsyncSession, newsletter_id: uuid.UUID, content: dict) -> int:
+        await session.execute(delete(NewsletterSection).where(NewsletterSection.newsletter_id == newsletter_id))
         order = 0
-        for key in ("executive_summary", "top_stories", "tools", "testing", "enterprise",
-                    "research", "benchmark", "trends", "final_takeaways"):
+        for key in (
+            "executive_summary",
+            "top_stories",
+            "tools",
+            "testing",
+            "enterprise",
+            "research",
+            "benchmark",
+            "trends",
+            "final_takeaways",
+        ):
             value = content.get(key)
             if not value:
                 continue
             text = self._render_section(key, value)
-            session.add(NewsletterSection(
-                newsletter_id=newsletter_id, section_name=key, section_order=order,
-                content=text, word_count=len(text.split()),
-            ))
+            session.add(
+                NewsletterSection(
+                    newsletter_id=newsletter_id,
+                    section_name=key,
+                    section_order=order,
+                    content=text,
+                    word_count=len(text.split()),
+                )
+            )
             order += 1
         return order
 
@@ -222,9 +231,7 @@ class NewsletterWriterAgent:
         words = content["cover"].get("word_count", 0)
         reading_time = content["cover"].get("estimated_reading_time_minutes", 1)
 
-        draft = await session.scalar(
-            select(NewsletterDraft).where(NewsletterDraft.newsletter_id == newsletter.id)
-        )
+        draft = await session.scalar(select(NewsletterDraft).where(NewsletterDraft.newsletter_id == newsletter.id))
         if draft is None:
             draft = NewsletterDraft(newsletter_id=newsletter.id)
             session.add(draft)
@@ -238,10 +245,16 @@ class NewsletterWriterAgent:
         if generation_time_ms is not None:
             draft.generation_time_ms = generation_time_ms
 
-        session.add(NewsletterVersion(
-            newsletter_id=newsletter.id, version_number=version_number,
-            content=content, word_count=words, created_by=created_by, change_reason=reason,
-        ))
+        session.add(
+            NewsletterVersion(
+                newsletter_id=newsletter.id,
+                version_number=version_number,
+                content=content,
+                word_count=words,
+                created_by=created_by,
+                change_reason=reason,
+            )
+        )
         newsletter.summary = content.get("executive_summary")
         newsletter.version = version_number
         return draft
@@ -263,9 +276,7 @@ class NewsletterWriterAgent:
             content = self._build_content(articles, newsletter.issue_number)
 
             if settings.ENABLE_LLM_WRITER and content.get("executive_summary"):
-                content["executive_summary"] = await llm.polish_text(
-                    content["executive_summary"], self.brand
-                )
+                content["executive_summary"] = await llm.polish_text(content["executive_summary"], self.brand)
 
             linkedin_post = self.generate_linkedin_post(content)
             carousel = self.generate_carousel_outline(content)
@@ -277,9 +288,14 @@ class NewsletterWriterAgent:
             sections = await self._persist_sections(session, newsletter.id, content)
             version_number = await self._next_version(session, newsletter.id)
             await self.save_draft(
-                session, newsletter, content, version_number=version_number,
-                created_by=created_by, reason="initial generation",
-                generation_time_ms=gen_ms, subjects=subjects,
+                session,
+                newsletter,
+                content,
+                version_number=version_number,
+                created_by=created_by,
+                reason="initial generation",
+                generation_time_ms=gen_ms,
+                subjects=subjects,
             )
             await self._replace_social(session, newsletter.id, linkedin_post, carousel)
             await session.commit()
@@ -287,7 +303,9 @@ class NewsletterWriterAgent:
 
         logger.info(
             "newsletter_generation_completed",
-            newsletter_id=nl_id, sections=sections, words=content["cover"]["word_count"],
+            newsletter_id=nl_id,
+            sections=sections,
+            words=content["cover"]["word_count"],
         )
         return {
             "newsletter_id": nl_id,
@@ -304,9 +322,7 @@ class NewsletterWriterAgent:
 
     async def _next_version(self, session: AsyncSession, newsletter_id: uuid.UUID) -> int:
         current = await session.scalar(
-            select(func.max(NewsletterVersion.version_number)).where(
-                NewsletterVersion.newsletter_id == newsletter_id
-            )
+            select(func.max(NewsletterVersion.version_number)).where(NewsletterVersion.newsletter_id == newsletter_id)
         )
         return (current or 0) + 1
 
@@ -315,11 +331,15 @@ class NewsletterWriterAgent:
     ) -> None:
         await session.execute(delete(LinkedInPost).where(LinkedInPost.newsletter_id == newsletter_id))
         await session.execute(delete(CarouselOutline).where(CarouselOutline.newsletter_id == newsletter_id))
-        session.add(LinkedInPost(
-            newsletter_id=newsletter_id, variant="announcement", body=post,
-            hashtags=["#AI", "#QualityEngineering", "#Testing", "#AgenticAI"],
-            char_count=len(post),
-        ))
+        session.add(
+            LinkedInPost(
+                newsletter_id=newsletter_id,
+                variant="announcement",
+                body=post,
+                hashtags=["#AI", "#QualityEngineering", "#Testing", "#AgenticAI"],
+                char_count=len(post),
+            )
+        )
         session.add(CarouselOutline(newsletter_id=newsletter_id, slides=carousel))
 
     async def regenerate_section(
@@ -331,9 +351,7 @@ class NewsletterWriterAgent:
 
         async with self.session_factory() as session:
             nl = await session.get(Newsletter, uuid.UUID(str(newsletter_id)))
-            draft = await session.scalar(
-                select(NewsletterDraft).where(NewsletterDraft.newsletter_id == nl.id)
-            )
+            draft = await session.scalar(select(NewsletterDraft).where(NewsletterDraft.newsletter_id == nl.id))
             content = dict(draft.content or {})
             articles = await self._load_articles(session, None)
 
@@ -350,19 +368,27 @@ class NewsletterWriterAgent:
             to_version = from_version + 1
             await self._persist_sections(session, nl.id, content)
             await self.save_draft(
-                session, nl, content, version_number=to_version,
-                created_by=changed_by, reason=reason,
+                session,
+                nl,
+                content,
+                version_number=to_version,
+                created_by=changed_by,
+                reason=reason,
             )
-            session.add(RegenerationHistory(
-                newsletter_id=nl.id, section_name=section,
-                from_version=from_version, to_version=to_version,
-                changed_by=changed_by, reason=reason,
-            ))
+            session.add(
+                RegenerationHistory(
+                    newsletter_id=nl.id,
+                    section_name=section,
+                    from_version=from_version,
+                    to_version=to_version,
+                    changed_by=changed_by,
+                    reason=reason,
+                )
+            )
             await session.commit()
 
         logger.info("section_regenerated", section=section, version=to_version)
-        return {"newsletter_id": newsletter_id, "section": section,
-                "version": to_version, "content": content[section]}
+        return {"newsletter_id": newsletter_id, "section": section, "version": to_version, "content": content[section]}
 
     def _regenerate_one(self, section: str, articles, content: dict):
         match section:
@@ -392,7 +418,5 @@ class NewsletterWriterAgent:
             "linkedin_draft": {"body": linkedin_post},
         }
 
-    async def run(
-        self, article_ids: Sequence[str] | None = None, newsletter_id: str | None = None
-    ) -> dict[str, Any]:
+    async def run(self, article_ids: Sequence[str] | None = None, newsletter_id: str | None = None) -> dict[str, Any]:
         return await self.generate_newsletter(article_ids, newsletter_id)

@@ -56,8 +56,7 @@ def compute_confidence(
     if claim_results:
         claim_verification = sum(c.support_score for c in claim_results) / len(claim_results)
         supported = sum(
-            1 for c in claim_results
-            if c.status in (ClaimVerification.SUPPORTED, ClaimVerification.PARTIALLY_SUPPORTED)
+            1 for c in claim_results if c.status in (ClaimVerification.SUPPORTED, ClaimVerification.PARTIALLY_SUPPORTED)
         )
         with_corroboration = sum(1 for c in claim_results if c.corroborating_sources > 0)
         supported_fraction = supported / len(claim_results)
@@ -68,9 +67,7 @@ def compute_confidence(
         supported_fraction = 0.0
         cross_source = 0.0
 
-    evidence = _clamp(
-        citations_count * 15 + supported_fraction * 40 + (20 if url_accessible else 0)
-    )
+    evidence = _clamp(citations_count * 15 + supported_fraction * 40 + (20 if url_accessible else 0))
 
     overall = _clamp(
         _WEIGHTS["source_credibility"] * source_credibility

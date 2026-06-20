@@ -29,4 +29,4 @@ class NewsletterSection(UUIDMixin, TimestampMixin, Base):
     content: Mapped[str | None] = mapped_column(Text)
     word_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
-    newsletter: Mapped["Newsletter"] = relationship(back_populates="sections")
+    newsletter: Mapped[Newsletter] = relationship(back_populates="sections")

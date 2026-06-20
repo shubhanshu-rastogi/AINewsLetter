@@ -26,19 +26,24 @@ def programmatic_cover(brand: BrandConfig, content: dict) -> Image.Image:
     cover = content.get("cover", {})
     issue = cover.get("issue_number")
 
-    draw.text((margin, margin), brand.logo_text, font=le.get_font(34, bold=True),
-              fill=brand.inverse_text_color)
+    draw.text((margin, margin), brand.logo_text, font=le.get_font(34, bold=True), fill=brand.inverse_text_color)
 
     y = height // 2 - 80
     le.accent_bar(draw, (margin, y - 30), 140, brand.accent_color)
-    le.draw_paragraph(draw, (margin, y), "Weekly AI & Quality Engineering Briefing",
-                      le.get_font(60, bold=True), brand.inverse_text_color,
-                      width - 2 * margin, line_spacing=8)
+    le.draw_paragraph(
+        draw,
+        (margin, y),
+        "Weekly AI & Quality Engineering Briefing",
+        le.get_font(60, bold=True),
+        brand.inverse_text_color,
+        width - 2 * margin,
+        line_spacing=8,
+    )
 
-    draw.text((margin, height - margin - 70), brand.tagline[:80],
-              font=le.get_font(24), fill=brand.surface_color)
-    le.draw_footer(draw, size, brand, f"Issue {issue}" if issue else "Weekly Edition",
-                   le.utcstamp(), fill=brand.accent_color)
+    draw.text((margin, height - margin - 70), brand.tagline[:80], font=le.get_font(24), fill=brand.surface_color)
+    le.draw_footer(
+        draw, size, brand, f"Issue {issue}" if issue else "Weekly Edition", le.utcstamp(), fill=brand.accent_color
+    )
     return img
 
 

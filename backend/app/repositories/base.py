@@ -46,9 +46,7 @@ class BaseRepository(Generic[ModelType]):
         return await self.session.get(self.model, id)
 
     async def list(self, *, limit: int = 100, offset: int = 0) -> Sequence[ModelType]:
-        result = await self.session.execute(
-            select(self.model).limit(limit).offset(offset)
-        )
+        result = await self.session.execute(select(self.model).limit(limit).offset(offset))
         return result.scalars().all()
 
     async def count(self) -> int:
@@ -59,9 +57,7 @@ class BaseRepository(Generic[ModelType]):
         page = max(page, 1)
         page_size = max(min(page_size, 200), 1)
         total = await self.count()
-        result = await self.session.execute(
-            select(self.model).limit(page_size).offset((page - 1) * page_size)
-        )
+        result = await self.session.execute(select(self.model).limit(page_size).offset((page - 1) * page_size))
         return Page(
             items=result.scalars().all(),
             total=total,

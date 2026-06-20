@@ -20,7 +20,9 @@ class NewsletterDraft(UUIDMixin, TimestampMixin, Base):
 
     newsletter_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("newsletters.id", ondelete="CASCADE"),
-        nullable=False, unique=True, index=True,
+        nullable=False,
+        unique=True,
+        index=True,
     )
     title: Mapped[str | None] = mapped_column(String(512))
     content: Mapped[dict | None] = mapped_column(JSON)  # full newsletter structure
@@ -30,4 +32,4 @@ class NewsletterDraft(UUIDMixin, TimestampMixin, Base):
     current_version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
     generation_time_ms: Mapped[float | None] = mapped_column(Float)
 
-    newsletter: Mapped["Newsletter"] = relationship(back_populates="draft")
+    newsletter: Mapped[Newsletter] = relationship(back_populates="draft")

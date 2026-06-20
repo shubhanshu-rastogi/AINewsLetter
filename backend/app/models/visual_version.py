@@ -26,4 +26,4 @@ class VisualVersion(UUIDMixin, TimestampMixin, Base):
     prompt_used: Mapped[str | None] = mapped_column(Text)
     change_reason: Mapped[str | None] = mapped_column(Text)
 
-    visual: Mapped["GeneratedVisual"] = relationship(back_populates="versions")
+    visual: Mapped[GeneratedVisual] = relationship(back_populates="versions")

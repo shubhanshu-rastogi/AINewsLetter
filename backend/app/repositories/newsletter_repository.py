@@ -19,21 +19,15 @@ class NewsletterRepository(BaseRepository[Newsletter]):
         super().__init__(Newsletter, session)
 
     async def get_by_issue_number(self, issue_number: int) -> Newsletter | None:
-        result = await self.session.execute(
-            select(Newsletter).where(Newsletter.issue_number == issue_number)
-        )
+        result = await self.session.execute(select(Newsletter).where(Newsletter.issue_number == issue_number))
         return result.scalar_one_or_none()
 
     async def list_by_status(self, status: NewsletterStatus) -> Sequence[Newsletter]:
-        result = await self.session.execute(
-            select(Newsletter).where(Newsletter.status == status)
-        )
+        result = await self.session.execute(select(Newsletter).where(Newsletter.status == status))
         return result.scalars().all()
 
     async def get_with_sections(self, id: uuid.UUID) -> Newsletter | None:
         result = await self.session.execute(
-            select(Newsletter)
-            .where(Newsletter.id == id)
-            .options(selectinload(Newsletter.sections))
+            select(Newsletter).where(Newsletter.id == id).options(selectinload(Newsletter.sections))
         )
         return result.scalar_one_or_none()

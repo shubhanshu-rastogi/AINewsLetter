@@ -23,7 +23,8 @@ async def get_or_create_record(
     )
     if record is None:
         record = PublicationRecord(
-            newsletter_id=newsletter_id, channel=channel,
+            newsletter_id=newsletter_id,
+            channel=channel,
             publication_status=PublicationStatus.PENDING,
         )
         session.add(record)
@@ -36,8 +37,6 @@ async def list_publications(session: AsyncSession, limit: int = 100) -> Sequence
     return (await session.execute(stmt)).scalars().all()
 
 
-async def for_newsletter(
-    session: AsyncSession, newsletter_id: uuid.UUID
-) -> Sequence[PublicationRecord]:
+async def for_newsletter(session: AsyncSession, newsletter_id: uuid.UUID) -> Sequence[PublicationRecord]:
     stmt = select(PublicationRecord).where(PublicationRecord.newsletter_id == newsletter_id)
     return (await session.execute(stmt)).scalars().all()

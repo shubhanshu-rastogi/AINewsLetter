@@ -28,4 +28,4 @@ class Citation(UUIDMixin, TimestampMixin, Base):
     publication_date: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     retrieval_timestamp: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
-    article: Mapped["CollectedArticle"] = relationship(back_populates="citations")
+    article: Mapped[CollectedArticle] = relationship(back_populates="citations")

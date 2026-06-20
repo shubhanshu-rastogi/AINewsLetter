@@ -14,9 +14,7 @@ from app.schemas.fact_check import FactCheckStats
 
 async def _count_status(session: AsyncSession, status: VerificationStatus) -> int:
     value = await session.scalar(
-        select(func.count())
-        .select_from(CollectedArticle)
-        .where(CollectedArticle.verification_status == status.value)
+        select(func.count()).select_from(CollectedArticle).where(CollectedArticle.verification_status == status.value)
     )
     return int(value or 0)
 

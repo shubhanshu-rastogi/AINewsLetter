@@ -3,9 +3,6 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-
-import pytest
 
 from app.agents.source_collection import (
     deduplicator,
@@ -31,27 +28,27 @@ from app.models.enums import (
 # --------------------------------------------------------------------------- #
 # Canned external payloads
 # --------------------------------------------------------------------------- #
-RSS_XML = """<?xml version="1.0"?>
+RSS_XML = b"""<?xml version="1.0"?>
 <rss version="2.0"><channel><title>Feed</title>
 <item><title>Agent One</title><link>https://ex.com/a1</link>
 <author>Jane Doe</author><pubDate>Mon, 01 Jan 2024 12:00:00 +0000</pubDate>
 <description>Snippet one</description></item>
 <item><title>Agent Two</title><link>https://ex.com/a2</link>
 <description>Snippet two</description></item>
-</channel></rss>""".encode()
+</channel></rss>"""
 
 HTML_PAGE = """<html><head><title>Doc Title</title>
 <meta name="description" content="A description."></head>
 <body><article>Main body content here.</article></body></html>"""
 
-ARXIV_ATOM = """<?xml version="1.0"?>
+ARXIV_ATOM = b"""<?xml version="1.0"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 <entry><title>Paper A</title><id>http://arxiv.org/abs/2401.0001</id>
 <link href="http://arxiv.org/abs/2401.0001"/>
 <published>2024-01-01T00:00:00Z</published>
 <summary>Abstract of paper A.</summary>
 <author><name>Alice</name></author></entry>
-</feed>""".encode()
+</feed>"""
 
 
 def _source(**overrides) -> ContentSource:
@@ -120,9 +117,7 @@ async def test_documentation_collection(monkeypatch) -> None:
     monkeypatch.setattr(documentation_collector, "fetch_text", fake_text)
     monkeypatch.setattr(documentation_collector, "is_allowed_by_robots", fake_robots)
 
-    articles = await documentation_collector.collect_documentation(
-        _source(source_type=SourceType.DOCUMENTATION)
-    )
+    articles = await documentation_collector.collect_documentation(_source(source_type=SourceType.DOCUMENTATION))
     assert len(articles) == 1
     assert articles[0].title == "Doc Title"
 
@@ -132,9 +127,7 @@ async def test_research_collection(monkeypatch) -> None:
         return ARXIV_ATOM
 
     monkeypatch.setattr(research_collector, "fetch_bytes", fake_fetch)
-    articles = await research_collector.collect_research(
-        _source(source_type=SourceType.RESEARCH)
-    )
+    articles = await research_collector.collect_research(_source(source_type=SourceType.RESEARCH))
     assert len(articles) == 1
     assert articles[0].title == "Paper A"
     assert articles[0].author == "Alice"
@@ -148,9 +141,7 @@ async def test_newsletter_source_collection(monkeypatch) -> None:
     monkeypatch.setattr(rss_collector, "fetch_bytes", fake_fetch)
     from app.agents.source_collection import newsletter_collector
 
-    articles = await newsletter_collector.collect_newsletter_source(
-        _source(source_type=SourceType.NEWSLETTER)
-    )
+    articles = await newsletter_collector.collect_newsletter_source(_source(source_type=SourceType.NEWSLETTER))
     assert len(articles) == 2  # used RSS path
 
 
@@ -172,9 +163,7 @@ def test_source_strategy_scoring() -> None:
 
 def test_normalization() -> None:
     assert normalizer.normalize_whitespace("  a\n b ") == "a b"
-    assert normalizer.normalize_url("HTTPS://Ex.com/Path/?utm_source=x&q=1#frag") == (
-        "https://ex.com/Path?q=1"
-    )
+    assert normalizer.normalize_url("HTTPS://Ex.com/Path/?utm_source=x&q=1#frag") == ("https://ex.com/Path?q=1")
 
     dt = normalizer.normalize_date("2024-01-01")
     assert dt is not None and dt.tzinfo is not None

@@ -11,6 +11,7 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app import __version__
 from app.api.articles import router as articles_router
@@ -21,14 +22,18 @@ from app.api.publishing import publications_router, publish_router
 from app.api.reviews import router as reviews_router
 from app.api.sources import router as sources_router
 from app.api.subscribers import router as subscribers_router
-from app.api.visuals import router as visuals_router
 from app.api.v1.router import api_router
+from app.api.visuals import router as visuals_router
 from app.api.workflows import router as workflows_router
 from app.core.config import settings
 from app.core.logging import configure_logging, get_logger
 from app.db.session import dispose_engine
 from app.middleware.error_handler import register_exception_handlers
+from app.middleware.idempotency import IdempotencyMiddleware
+from app.middleware.observability import MetricsMiddleware
+from app.middleware.rate_limit import RateLimitMiddleware
 from app.middleware.request_context import RequestContextMiddleware
+from app.middleware.security import RequestSizeLimitMiddleware, SecurityHeadersMiddleware
 
 logger = get_logger("app")
 
@@ -71,8 +76,26 @@ def create_app() -> FastAPI:
         openapi_url="/openapi.json",
     )
 
-    # Middleware
+    # Middleware (added last = outermost). RequestContext is outermost so a
+    # request_id is bound for every downstream layer.
+    app.add_middleware(RequestSizeLimitMiddleware)
+    app.add_middleware(IdempotencyMiddleware)
+    app.add_middleware(RateLimitMiddleware)
+    app.add_middleware(MetricsMiddleware)
+    app.add_middleware(SecurityHeadersMiddleware)
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origin_list,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
     app.add_middleware(RequestContextMiddleware)
+
+    # Optional OpenTelemetry instrumentation (no-op unless enabled + installed).
+    from app.core.tracing import setup_tracing
+
+    setup_tracing(app)
 
     # Exception handlers
     register_exception_handlers(app)

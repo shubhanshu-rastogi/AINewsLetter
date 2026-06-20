@@ -80,15 +80,11 @@ def make_node(name: str, fn: LogicFn) -> Callable[[WorkflowState], Awaitable[dic
             updates = await fn(state) or {}
             updates["current_step"] = name
             updates["updated_at"] = _utcnow().isoformat()
-            await _finish_agent_run(
-                agent_run_id, ExecutionStatus.SUCCESS, perf_start, None
-            )
+            await _finish_agent_run(agent_run_id, ExecutionStatus.SUCCESS, perf_start, None)
             logger.info("node_completed", node=name, workflow_run_id=wf_id)
             return updates
         except Exception as exc:  # noqa: BLE001 - deliberate: route failures, don't crash
-            await _finish_agent_run(
-                agent_run_id, ExecutionStatus.FAILED, perf_start, str(exc)
-            )
+            await _finish_agent_run(agent_run_id, ExecutionStatus.FAILED, perf_start, str(exc))
             logger.error("node_failed", node=name, workflow_run_id=wf_id, error=str(exc))
             errors = list(state.get("errors") or []) + [f"{name}: {exc}"]
             return {
@@ -102,9 +98,7 @@ def make_node(name: str, fn: LogicFn) -> Callable[[WorkflowState], Awaitable[dic
     return node
 
 
-async def _start_agent_run(
-    name: str, wf_id: str | None, started_at: datetime
-) -> uuid.UUID | None:
+async def _start_agent_run(name: str, wf_id: str | None, started_at: datetime) -> uuid.UUID | None:
     """Best-effort agent_run creation; never fails the workflow."""
     try:
         sf = get_session_factory()
@@ -234,9 +228,7 @@ async def _visual_generation(state: WorkflowState) -> dict[str, Any]:
     if not newsletter_id:
         return {"visual_ids": []}
     agent = VisualGenerationAgent(get_session_factory())
-    result = await agent.generate_all_visuals(
-        newsletter_id, content=state.get("newsletter_draft")
-    )
+    result = await agent.generate_all_visuals(newsletter_id, content=state.get("newsletter_draft"))
     return {"visual_ids": result["visual_ids"]}
 
 
@@ -310,9 +302,9 @@ async def _feedback_processor(state: WorkflowState) -> dict[str, Any]:
 
 async def _draft_regeneration(state: WorkflowState) -> dict[str, Any]:
     """Reload the regenerated draft content into workflow state."""
-    from app.models.newsletter_draft import NewsletterDraft
-
     from sqlalchemy import select
+
+    from app.models.newsletter_draft import NewsletterDraft
 
     count = (state.get("regeneration_count") or 0) + 1
     nl_id = state.get("newsletter_id")

@@ -13,9 +13,8 @@ from app.agents.newsletter_writer.writer_agent import NewsletterWriterAgent
 from app.core.config import settings
 from app.models.collected_article import CollectedArticle
 from app.models.content_source import ContentSource
-from app.models.enums import ArticleStatus, CollectionMethod
+from app.models.enums import ArticleStatus, CollectionMethod, SourceType, VerificationStatus
 from app.models.enums import NewsletterSection as NS
-from app.models.enums import SourceType, VerificationStatus
 from app.services.newsletter_stats import get_newsletter_stats
 
 SAMPLES = [
@@ -32,21 +31,34 @@ SAMPLES = [
 async def _seed(session_factory) -> None:
     async with session_factory() as s:
         src = ContentSource(
-            source_name="OpenAI", source_type=SourceType.DOCUMENTATION,
-            source_url="https://openai.com", priority=1, credibility_score=0.95,
-            freshness_score=0.9, relevance_score=0.9,
-            preferred_collection_method=CollectionMethod.DOCUMENTATION, category="AI",
+            source_name="OpenAI",
+            source_type=SourceType.DOCUMENTATION,
+            source_url="https://openai.com",
+            priority=1,
+            credibility_score=0.95,
+            freshness_score=0.9,
+            relevance_score=0.9,
+            preferred_collection_method=CollectionMethod.DOCUMENTATION,
+            category="AI",
         )
         s.add(src)
         await s.flush()
         for title, content, section in SAMPLES:
-            s.add(CollectedArticle(
-                source_id=src.id, title=title, url=f"https://openai.com/{uuid.uuid4()}",
-                summary=content, raw_content=content, status=ArticleStatus.PROCESSED,
-                is_selected=True, newsletter_section=section, overall_confidence_score=93,
-                verification_status=VerificationStatus.VERIFIED.value,
-                published_date=datetime.now(timezone.utc),
-            ))
+            s.add(
+                CollectedArticle(
+                    source_id=src.id,
+                    title=title,
+                    url=f"https://openai.com/{uuid.uuid4()}",
+                    summary=content,
+                    raw_content=content,
+                    status=ArticleStatus.PROCESSED,
+                    is_selected=True,
+                    newsletter_section=section,
+                    overall_confidence_score=93,
+                    verification_status=VerificationStatus.VERIFIED.value,
+                    published_date=datetime.now(timezone.utc),
+                )
+            )
         await s.commit()
 
 
@@ -59,8 +71,17 @@ def test_brand_voice_guidelines() -> None:
 
 @pytest.mark.parametrize(
     "section",
-    ["executive_summary", "top_stories", "tools", "testing", "enterprise",
-     "research", "benchmark", "trends", "final_takeaways"],
+    [
+        "executive_summary",
+        "top_stories",
+        "tools",
+        "testing",
+        "enterprise",
+        "research",
+        "benchmark",
+        "trends",
+        "final_takeaways",
+    ],
 )
 async def test_regenerate_every_section(session_factory, section) -> None:
     await _seed(session_factory)

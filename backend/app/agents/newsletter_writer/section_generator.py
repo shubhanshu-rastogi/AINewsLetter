@@ -45,15 +45,19 @@ def _needs_review(article: CollectedArticle) -> bool:
 
 
 def _testing_angle(section: NS | None) -> str:
-    return {
-        NS.AGENTIC_AI_ENGINEERING: "agent behavior testing and guardrail validation",
-        NS.AI_EVALUATION_QA_GATES: "evaluation harnesses and CI quality gates",
-        NS.AI_TESTING_QUALITY: "test automation and quality engineering practices",
-        NS.ENTERPRISE_AI_ADOPTION: "governance checks and acceptance criteria",
-        NS.CODING_AGENT_BENCHMARK: "benchmark-driven regression testing",
-        NS.RESEARCH_WATCH: "reproducibility and empirical validation",
-        NS.AI_TOOLS_WATCH: "tool evaluation and integration testing",
-    }.get(section, "quality gates and verification") if section else "quality gates and verification"
+    return (
+        {
+            NS.AGENTIC_AI_ENGINEERING: "agent behavior testing and guardrail validation",
+            NS.AI_EVALUATION_QA_GATES: "evaluation harnesses and CI quality gates",
+            NS.AI_TESTING_QUALITY: "test automation and quality engineering practices",
+            NS.ENTERPRISE_AI_ADOPTION: "governance checks and acceptance criteria",
+            NS.CODING_AGENT_BENCHMARK: "benchmark-driven regression testing",
+            NS.RESEARCH_WATCH: "reproducibility and empirical validation",
+            NS.AI_TOOLS_WATCH: "tool evaluation and integration testing",
+        }.get(section, "quality gates and verification")
+        if section
+        else "quality gates and verification"
+    )
 
 
 def story(article: CollectedArticle) -> dict:
@@ -144,8 +148,7 @@ def trend(article: CollectedArticle) -> dict:
     topic = _topic(article)
     return {
         "signal": (article.title or "Trend").strip(),
-        "evidence": _first_sentences(article.summary or article.raw_content, 1)
-        or "Observed across recent coverage.",
+        "evidence": _first_sentences(article.summary or article.raw_content, 1) or "Observed across recent coverage.",
         "why_it_matters": f"{topic.capitalize()} is shaping near-term AI engineering priorities.",
         "prediction": "Expect this to influence tooling and team practices next quarter.",
         "needs_review": _needs_review(article),

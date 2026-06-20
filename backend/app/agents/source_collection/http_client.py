@@ -45,9 +45,7 @@ async def fetch_bytes(
                 return response.content
         except (httpx.HTTPError, httpx.TimeoutException) as exc:
             last_error = exc
-            logger.warning(
-                "fetch_retry", url=url, attempt=attempt, max=retries, error=str(exc)
-            )
+            logger.warning("fetch_retry", url=url, attempt=attempt, max=retries, error=str(exc))
             if attempt < retries:
                 await asyncio.sleep(min(2 ** (attempt - 1), 8))
 

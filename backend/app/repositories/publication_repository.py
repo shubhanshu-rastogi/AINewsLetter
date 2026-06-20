@@ -17,13 +17,9 @@ class PublicationRepository(BaseRepository[PublicationRecord]):
     def __init__(self, session: AsyncSession) -> None:
         super().__init__(PublicationRecord, session)
 
-    async def list_by_newsletter(
-        self, newsletter_id: uuid.UUID
-    ) -> Sequence[PublicationRecord]:
+    async def list_by_newsletter(self, newsletter_id: uuid.UUID) -> Sequence[PublicationRecord]:
         result = await self.session.execute(
-            select(PublicationRecord).where(
-                PublicationRecord.newsletter_id == newsletter_id
-            )
+            select(PublicationRecord).where(PublicationRecord.newsletter_id == newsletter_id)
         )
         return result.scalars().all()
 

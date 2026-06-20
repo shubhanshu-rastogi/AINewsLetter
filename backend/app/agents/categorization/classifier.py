@@ -28,10 +28,7 @@ def _article_text(article: CollectedArticle) -> str:
 
 
 def _section_scores(text: str, article: CollectedArticle) -> list[tuple[NS, int]]:
-    scores = {
-        section: taxonomy.count_hits(text, kws)
-        for section, kws in taxonomy.SECTION_KEYWORDS.items()
-    }
+    scores = {section: taxonomy.count_hits(text, kws) for section, kws in taxonomy.SECTION_KEYWORDS.items()}
     # Bias toward the source's assigned section.
     if article.newsletter_section is not None:
         scores[article.newsletter_section] = scores.get(article.newsletter_section, 0) + 1
@@ -42,9 +39,7 @@ def classify(article: CollectedArticle) -> ClassificationResult:
     text = _article_text(article)
     ordered = _section_scores(text, article)
 
-    top_section = ordered[0][0] if ordered[0][1] > 0 else (
-        article.newsletter_section or NS.AGENTIC_AI_ENGINEERING
-    )
+    top_section = ordered[0][0] if ordered[0][1] > 0 else (article.newsletter_section or NS.AGENTIC_AI_ENGINEERING)
     secondary = None
     if len(ordered) > 1 and ordered[1][1] > 0 and ordered[1][0] != top_section:
         secondary = taxonomy.SECTION_CATEGORY[ordered[1][0]]
@@ -64,8 +59,4 @@ def classify(article: CollectedArticle) -> ClassificationResult:
 
 
 def generate_tags(text: str) -> list[str]:
-    return [
-        tag
-        for tag, triggers in taxonomy.TAG_KEYWORDS.items()
-        if any(trigger in text for trigger in triggers)
-    ]
+    return [tag for tag, triggers in taxonomy.TAG_KEYWORDS.items() if any(trigger in text for trigger in triggers)]

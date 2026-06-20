@@ -38,8 +38,8 @@ from app.models.enums import (
 from app.models.newsletter import Newsletter
 from app.models.publication_analytics import PublicationAnalytics  # noqa: F401 (registry)
 from app.models.publication_failure import PublicationFailure
-from app.models.review_session import ReviewSession
 from app.models.retry_queue import RetryQueueEntry
+from app.models.review_session import ReviewSession
 
 logger = get_logger("publishing")
 
@@ -62,9 +62,7 @@ class PublisherAgent:
             if newsletter is None:
                 raise ValidationFailedError("Newsletter not found.")
             if newsletter.status != NewsletterStatus.APPROVED:
-                raise PublicationNotApprovedError(
-                    f"Newsletter status is {newsletter.status}, not APPROVED."
-                )
+                raise PublicationNotApprovedError(f"Newsletter status is {newsletter.status}, not APPROVED.")
             approved_review = await session.scalar(
                 select(ReviewSession).where(
                     ReviewSession.newsletter_id == nid,
@@ -95,7 +93,9 @@ class PublisherAgent:
         if channel == PublicationChannel.EMAIL:
             email = email_preparer.prepare_email(package, package.get("cover_image_url"))
             return PublishResult(
-                success=True, channel="email", status=PublishState.PUBLISHED,
+                success=True,
+                channel="email",
+                status=PublishState.PUBLISHED,
                 metadata={"prepared": True, "delivered": False, "subject": email["subject"]},
             )
         if channel == PublicationChannel.BEEHIIV:
@@ -109,9 +109,7 @@ class PublisherAgent:
             result.metadata["carousel_error"] = str(exc)
         return result
 
-    async def publish_newsletter(
-        self, newsletter_id: str, channels: Sequence[str] | None = None
-    ) -> dict[str, Any]:
+    async def publish_newsletter(self, newsletter_id: str, channels: Sequence[str] | None = None) -> dict[str, Any]:
         validation = await self.validate_publication_package(newsletter_id)
         package = validation["package"]
         chans = [PublicationChannel(c.lower()) for c in channels] if channels else _DEFAULT_CHANNELS
@@ -119,9 +117,7 @@ class PublisherAgent:
 
         results: dict[str, Any] = {}
         for channel in chans:
-            results[channel.value] = await self._publish_one(
-                newsletter_id, channel, package, subscriber_count
-            )
+            results[channel.value] = await self._publish_one(newsletter_id, channel, package, subscriber_count)
 
         published = [c for c, r in results.items() if r["status"] == "published"]
         failed = [c for c, r in results.items() if r["status"] != "published"]
@@ -140,21 +136,26 @@ class PublisherAgent:
         try:
             result = await self._publish_channel(channel, package)
             await self.record_publication(newsletter_id, channel, result, subscriber_count)
-            return {"status": "published", "external_id": result.external_id,
-                    "metadata": result.metadata}
+            return {"status": "published", "external_id": result.external_id, "metadata": result.metadata}
         except PublishError as exc:
             retryable = isinstance(exc, RetryablePublishError)
             await self._record_failure(newsletter_id, channel, exc, retryable=retryable)
             logger.error("publication_failed", channel=channel.value, error=str(exc), retryable=retryable)
-            return {"status": "retrying" if retryable else "failed",
-                    "error": str(exc), "error_type": type(exc).__name__}
+            return {
+                "status": "retrying" if retryable else "failed",
+                "error": str(exc),
+                "error_type": type(exc).__name__,
+            }
 
     # ------------------------------------------------------------------ #
     # Persistence
     # ------------------------------------------------------------------ #
     async def record_publication(
-        self, newsletter_id: str, channel: PublicationChannel,
-        result: PublishResult, subscriber_count: int = 0,
+        self,
+        newsletter_id: str,
+        channel: PublicationChannel,
+        result: PublishResult,
+        subscriber_count: int = 0,
     ) -> None:
         nid = uuid.UUID(str(newsletter_id))
         async with self.session_factory() as session:
@@ -167,14 +168,21 @@ class PublisherAgent:
             record.channel_metadata = result.metadata
             await session.flush()
             await analytics_collector.collect_analytics(
-                session, newsletter_id=nid, channel=channel.value,
-                publication_record_id=record.id, subscriber_count=subscriber_count,
+                session,
+                newsletter_id=nid,
+                channel=channel.value,
+                publication_record_id=record.id,
+                subscriber_count=subscriber_count,
             )
             await session.commit()
 
     async def _record_failure(
-        self, newsletter_id: str, channel: PublicationChannel,
-        exc: Exception, *, retryable: bool,
+        self,
+        newsletter_id: str,
+        channel: PublicationChannel,
+        exc: Exception,
+        *,
+        retryable: bool,
     ) -> None:
         nid = uuid.UUID(str(newsletter_id))
         now = datetime.now(timezone.utc)
@@ -187,15 +195,27 @@ class PublisherAgent:
             record.last_retry_at = now
             await session.flush()
 
-            session.add(PublicationFailure(
-                publication_record_id=record.id, newsletter_id=nid, channel=channel.value,
-                error_type=type(exc).__name__, error_message=str(exc), occurred_at=now,
-            ))
+            session.add(
+                PublicationFailure(
+                    publication_record_id=record.id,
+                    newsletter_id=nid,
+                    channel=channel.value,
+                    error_type=type(exc).__name__,
+                    error_message=str(exc),
+                    occurred_at=now,
+                )
+            )
             if retryable:
-                session.add(RetryQueueEntry(
-                    publication_record_id=record.id, newsletter_id=nid, channel=channel.value,
-                    attempt=record.retry_count, status="pending", last_error=str(exc),
-                ))
+                session.add(
+                    RetryQueueEntry(
+                        publication_record_id=record.id,
+                        newsletter_id=nid,
+                        channel=channel.value,
+                        attempt=record.retry_count,
+                        status="pending",
+                        last_error=str(exc),
+                    )
+                )
                 logger.info("retry_scheduled", channel=channel.value, attempt=record.retry_count)
             await session.commit()
 
@@ -237,8 +257,11 @@ class PublisherAgent:
             newsletter_id = str(record.newsletter_id)
             channel = record.channel
         result = await self.publish_newsletter(newsletter_id, [channel.value])
-        return {"publication_id": publication_id, "channel": channel.value,
-                "result": result["channels"].get(channel.value)}
+        return {
+            "publication_id": publication_id,
+            "channel": channel.value,
+            "result": result["channels"].get(channel.value),
+        }
 
     def update_workflow_state(self, overall: str) -> dict[str, Any]:
         return {"publish_status": overall}

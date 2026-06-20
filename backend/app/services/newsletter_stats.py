@@ -16,9 +16,7 @@ async def get_newsletter_stats(session: AsyncSession) -> NewsletterStats:
     avg_time = await session.scalar(select(func.avg(NewsletterDraft.generation_time_ms)))
     avg_words = await session.scalar(select(func.avg(NewsletterDraft.word_count)))
     sections = await session.scalar(select(func.count()).select_from(NewsletterSection))
-    regenerations = await session.scalar(
-        select(func.count()).select_from(RegenerationHistory)
-    )
+    regenerations = await session.scalar(select(func.count()).select_from(RegenerationHistory))
     top_rows = await session.execute(
         select(RegenerationHistory.section_name, func.count())
         .group_by(RegenerationHistory.section_name)

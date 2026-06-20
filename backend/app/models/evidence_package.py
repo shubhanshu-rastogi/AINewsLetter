@@ -20,7 +20,9 @@ class EvidencePackage(UUIDMixin, TimestampMixin, Base):
 
     article_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("collected_articles.id", ondelete="CASCADE"),
-        nullable=False, unique=True, index=True,
+        nullable=False,
+        unique=True,
+        index=True,
     )
     confidence_score: Mapped[float | None] = mapped_column(Float)
     verification_status: Mapped[str | None] = mapped_column(String(30))
@@ -28,4 +30,4 @@ class EvidencePackage(UUIDMixin, TimestampMixin, Base):
     verification_notes: Mapped[str | None] = mapped_column(Text)
     package: Mapped[dict | None] = mapped_column(JSON)
 
-    article: Mapped["CollectedArticle"] = relationship(back_populates="evidence_package")
+    article: Mapped[CollectedArticle] = relationship(back_populates="evidence_package")

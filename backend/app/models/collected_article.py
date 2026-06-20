@@ -95,24 +95,22 @@ class CollectedArticle(UUIDMixin, TimestampMixin, Base):
     overall_confidence_score: Mapped[float | None] = mapped_column(Float)
     verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
-    source: Mapped["ContentSource"] = relationship(back_populates="articles", lazy="selectin")
-    category: Mapped["ArticleCategory | None"] = relationship(
-        back_populates="articles", lazy="selectin"
-    )
-    tags: Mapped[list["ArticleTag"]] = relationship(
+    source: Mapped[ContentSource] = relationship(back_populates="articles", lazy="selectin")
+    category: Mapped[ArticleCategory | None] = relationship(back_populates="articles", lazy="selectin")
+    tags: Mapped[list[ArticleTag]] = relationship(
         back_populates="article",
         cascade="all, delete-orphan",
         lazy="selectin",
     )
-    citations: Mapped[list["Citation"]] = relationship(
+    citations: Mapped[list[Citation]] = relationship(
         back_populates="article", cascade="all, delete-orphan", lazy="selectin"
     )
-    verified_claims: Mapped[list["VerifiedClaim"]] = relationship(
+    verified_claims: Mapped[list[VerifiedClaim]] = relationship(
         back_populates="article", cascade="all, delete-orphan", lazy="selectin"
     )
-    fact_check_result: Mapped["FactCheckResult | None"] = relationship(
+    fact_check_result: Mapped[FactCheckResult | None] = relationship(
         back_populates="article", cascade="all, delete-orphan", uselist=False, lazy="selectin"
     )
-    evidence_package: Mapped["EvidencePackage | None"] = relationship(
+    evidence_package: Mapped[EvidencePackage | None] = relationship(
         back_populates="article", cascade="all, delete-orphan", uselist=False, lazy="selectin"
     )

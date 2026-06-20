@@ -36,18 +36,30 @@ def _source(source_type=SourceType.DOCUMENTATION, name="Docs", url="https://ex.c
     from app.models.content_source import ContentSource
 
     return ContentSource(
-        id=uuid.uuid4(), source_name=name, source_type=source_type, source_url=url,
-        priority=1, credibility_score=0.9, freshness_score=0.8, relevance_score=0.9,
+        id=uuid.uuid4(),
+        source_name=name,
+        source_type=source_type,
+        source_url=url,
+        priority=1,
+        credibility_score=0.9,
+        freshness_score=0.8,
+        relevance_score=0.9,
         preferred_collection_method=CollectionMethod.DOCUMENTATION,
     )
 
 
-def _article(title="Agents guide", content="", *, url="https://ex.com/a",
-             published=None, source=None) -> CollectedArticle:
+def _article(
+    title="Agents guide", content="", *, url="https://ex.com/a", published=None, source=None
+) -> CollectedArticle:
     src = source or _source()
     art = CollectedArticle(
-        id=uuid.uuid4(), source_id=src.id, title=title, url=url,
-        raw_content=content, summary=content, published_date=published,
+        id=uuid.uuid4(),
+        source_id=src.id,
+        title=title,
+        url=url,
+        raw_content=content,
+        summary=content,
+        published_date=published,
     )
     art.source = src
     return art
@@ -132,16 +144,27 @@ def test_cross_source_validation_unverified_low_trust() -> None:
 def test_cross_source_corroboration_and_contradiction() -> None:
     src_a = _source(name="A", url="https://a.com")
     src_b = _source(name="B", url="https://b.com")
-    art = _article(title="OpenAI launches agent orchestration framework", content="agent orchestration framework launch", source=src_a)
-    other = _article(title="OpenAI agent orchestration framework now available",
-                     content="agent orchestration framework launch confirmed", url="https://b.com/x", source=src_b)
+    art = _article(
+        title="OpenAI launches agent orchestration framework",
+        content="agent orchestration framework launch",
+        source=src_a,
+    )
+    other = _article(
+        title="OpenAI agent orchestration framework now available",
+        content="agent orchestration framework launch confirmed",
+        url="https://b.com/x",
+        source=src_b,
+    )
     claim = cross_source_validator.Claim("OpenAI agent orchestration framework launch", ClaimType.PRODUCT_LAUNCH)
     res = cross_source_validator.validate_claim(claim, art, TrustTier.MEDIUM, [other])
     assert res.corroborating_sources >= 1
 
-    contra = _article(title="OpenAI agent orchestration framework not real, false claim",
-                      content="agent orchestration framework launch is false debunk",
-                      url="https://b.com/y", source=src_b)
+    contra = _article(
+        title="OpenAI agent orchestration framework not real, false claim",
+        content="agent orchestration framework launch is false debunk",
+        url="https://b.com/y",
+        source=src_b,
+    )
     res2 = cross_source_validator.validate_claim(claim, art, TrustTier.MEDIUM, [contra])
     assert res2.status == ClaimVerification.CONTRADICTED
 
@@ -168,8 +191,11 @@ def test_confidence_thresholds() -> None:
 def test_confidence_calculation() -> None:
     claim = cross_source_validator.ClaimResult("c", ClaimType.FACT, ClaimVerification.SUPPORTED, 90, 2)
     result = confidence_engine.compute_confidence(
-        source_credibility=95, claim_results=[claim], url_accessible=True,
-        freshness=100, citations_count=3,
+        source_credibility=95,
+        claim_results=[claim],
+        url_accessible=True,
+        freshness=100,
+        citations_count=3,
     )
     assert 0 <= result.overall_confidence_score <= 100
     assert result.overall_confidence_score >= 70
@@ -182,8 +208,11 @@ def test_evidence_packaging() -> None:
     art = _article(title="Agents")
     claim = cross_source_validator.ClaimResult("c", ClaimType.FACT, ClaimVerification.SUPPORTED, 90, 1)
     conf = confidence_engine.compute_confidence(
-        source_credibility=90, claim_results=[claim], url_accessible=True,
-        freshness=80, citations_count=2,
+        source_credibility=90,
+        claim_results=[claim],
+        url_accessible=True,
+        freshness=80,
+        citations_count=2,
     )
     pkg = build_package(art, [claim], [{"source_url": art.url}], ["B"], conf, "notes")
     assert pkg["article_id"] == str(art.id)
@@ -192,26 +221,40 @@ def test_evidence_packaging() -> None:
 
 
 # --- agent + DB persistence --- #
-async def _seed_article(session_factory, *, source_type=SourceType.DOCUMENTATION,
-                        content="The agent achieves 95% accuracy on SWE-bench benchmark. "
-                                "OpenAI launches a new orchestration framework today.",
-                        title="Agent orchestration framework launch",
-                        days_old=0, selected=True) -> str:
+async def _seed_article(
+    session_factory,
+    *,
+    source_type=SourceType.DOCUMENTATION,
+    content="The agent achieves 95% accuracy on SWE-bench benchmark. "
+    "OpenAI launches a new orchestration framework today.",
+    title="Agent orchestration framework launch",
+    days_old=0,
+    selected=True,
+) -> str:
     from app.models.content_source import ContentSource
 
     async with session_factory() as s:
         src = ContentSource(
-            source_name="Docs", source_type=source_type, source_url="https://ex.com",
-            priority=1, credibility_score=0.9, freshness_score=0.8, relevance_score=0.9,
+            source_name="Docs",
+            source_type=source_type,
+            source_url="https://ex.com",
+            priority=1,
+            credibility_score=0.9,
+            freshness_score=0.8,
+            relevance_score=0.9,
             preferred_collection_method=CollectionMethod.DOCUMENTATION,
             category="Agentic AI Engineering",
         )
         s.add(src)
         await s.flush()
         art = CollectedArticle(
-            source_id=src.id, title=title,
-            url="https://ex.com/story", raw_content=content, summary=content,
-            status=ArticleStatus.PROCESSED, is_selected=selected,
+            source_id=src.id,
+            title=title,
+            url="https://ex.com/story",
+            raw_content=content,
+            summary=content,
+            status=ArticleStatus.PROCESSED,
+            is_selected=selected,
             published_date=datetime.now(timezone.utc) - timedelta(days=days_old),
             source_category="Agentic AI Engineering",
         )
@@ -243,8 +286,11 @@ async def test_fact_check_agent_persists(session_factory) -> None:
 async def test_fact_check_rejects_low_confidence(session_factory) -> None:
     # Weak source + no claims + stale -> REJECTED and removed.
     await _seed_article(
-        session_factory, source_type=SourceType.WEBSITE,
-        content="", title="Daily roundup", days_old=40,
+        session_factory,
+        source_type=SourceType.WEBSITE,
+        content="",
+        title="Daily roundup",
+        days_old=40,
     )
     agent = FactCheckAgent(session_factory)
     result = await agent.run()

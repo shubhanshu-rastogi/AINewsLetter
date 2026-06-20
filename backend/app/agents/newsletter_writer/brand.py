@@ -11,19 +11,24 @@ from app.core.config import settings
 class BrandVoice:
     name: str
     tagline: str
-    audience: str = (
-        "QA Leaders, Test Managers, Engineering Leaders, and IT Professionals"
-    )
+    audience: str = "QA Leaders, Test Managers, Engineering Leaders, and IT Professionals"
     tone: list[str] = field(
         default_factory=lambda: [
-            "professional", "insightful", "technical", "practical",
-            "leadership-oriented", "no hype", "no clickbait",
+            "professional",
+            "insightful",
+            "technical",
+            "practical",
+            "leadership-oriented",
+            "no hype",
+            "no clickbait",
         ]
     )
     style: list[str] = field(
         default_factory=lambda: [
-            "concise", "opinionated but evidence-based",
-            "business-friendly", "easy to skim",
+            "concise",
+            "opinionated but evidence-based",
+            "business-friendly",
+            "easy to skim",
         ]
     )
 

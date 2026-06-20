@@ -29,16 +29,12 @@ async def test_newsletter_sections_relationship_and_cascade(
     await session.delete(newsletter)
     await session.flush()
 
-    remaining = await session.scalar(
-        select(func.count()).select_from(NewsletterSection)
-    )
+    remaining = await session.scalar(select(func.count()).select_from(NewsletterSection))
     assert remaining == 0
 
 
 async def test_source_articles_cascade(session: AsyncSession) -> None:
-    source = ContentSource(
-        source_name="S", source_type=SourceType.BLOG, source_url="https://s.dev"
-    )
+    source = ContentSource(source_name="S", source_type=SourceType.BLOG, source_url="https://s.dev")
     source.articles = [
         CollectedArticle(title="t1", url="https://s.dev/1"),
         CollectedArticle(title="t2", url="https://s.dev/2"),

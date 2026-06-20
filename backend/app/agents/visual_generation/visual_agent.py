@@ -42,9 +42,7 @@ _COARSE = {
 
 
 class VisualGenerationAgent:
-    def __init__(
-        self, session_factory: Callable[[], AsyncSession], storage: AssetStorage | None = None
-    ) -> None:
+    def __init__(self, session_factory: Callable[[], AsyncSession], storage: AssetStorage | None = None) -> None:
         self.session_factory = session_factory
         self.brand: BrandConfig = load_brand_config()
         self.storage = storage or get_storage()
@@ -81,9 +79,18 @@ class VisualGenerationAgent:
         }
 
     def _record(
-        self, session: AsyncSession, newsletter_id: uuid.UUID, *, kind: VisualKind,
-        title: str, description: str, file_path: str, method: GenerationMethod,
-        size: tuple[int, int], slide_number: int | None = None, prompt: str | None = None,
+        self,
+        session: AsyncSession,
+        newsletter_id: uuid.UUID,
+        *,
+        kind: VisualKind,
+        title: str,
+        description: str,
+        file_path: str,
+        method: GenerationMethod,
+        size: tuple[int, int],
+        slide_number: int | None = None,
+        prompt: str | None = None,
     ) -> GeneratedVisual:
         visual = GeneratedVisual(
             newsletter_id=newsletter_id,
@@ -107,29 +114,44 @@ class VisualGenerationAgent:
     # ------------------------------------------------------------------ #
     # Per-visual generation
     # ------------------------------------------------------------------ #
-    async def generate_cover_image(
-        self, session: AsyncSession, newsletter_id: str, content: dict
-    ) -> GeneratedVisual:
+    async def generate_cover_image(self, session: AsyncSession, newsletter_id: str, content: dict) -> GeneratedVisual:
         prompt = self.build_visual_prompt("newsletter cover", "this week's AI engineering highlights")
         data, method, size = await image_generator.generate_cover(self.brand, content, prompt)
         path = self.save_asset(newsletter_id, "cover", "cover.png", data)
         return self._record(
-            session, uuid.UUID(newsletter_id), kind=VisualKind.COVER,
-            title=f"{self.brand.logo_text} cover", description="Newsletter cover image",
-            file_path=path, method=method, size=size, prompt=prompt,
+            session,
+            uuid.UUID(newsletter_id),
+            kind=VisualKind.COVER,
+            title=f"{self.brand.logo_text} cover",
+            description="Newsletter cover image",
+            file_path=path,
+            method=method,
+            size=size,
+            prompt=prompt,
         )
 
     def generate_carousel_slide(
-        self, session: AsyncSession, newsletter_id: str, content: dict, spec: dict,
-        slide_number: int, issue: int | None,
+        self,
+        session: AsyncSession,
+        newsletter_id: str,
+        content: dict,
+        spec: dict,
+        slide_number: int,
+        issue: int | None,
     ) -> GeneratedVisual:
         size = self.brand.dim("linkedin_carousel").as_tuple()
         image = carousel_builder.render_slide(self.brand, spec, slide_number, issue, size)
         path = self._save_image(newsletter_id, "carousel", f"slide_{slide_number:02d}.png", image)
         return self._record(
-            session, uuid.UUID(newsletter_id), kind=VisualKind.CAROUSEL_SLIDE,
-            title=spec["title"], description=spec["label"], file_path=path,
-            method=GenerationMethod.PROGRAMMATIC, size=size, slide_number=slide_number,
+            session,
+            uuid.UUID(newsletter_id),
+            kind=VisualKind.CAROUSEL_SLIDE,
+            title=spec["title"],
+            description=spec["label"],
+            file_path=path,
+            method=GenerationMethod.PROGRAMMATIC,
+            size=size,
+            slide_number=slide_number,
         )
 
     async def generate_carousel(
@@ -144,46 +166,99 @@ class VisualGenerationAgent:
         return visuals
 
     def _card(
-        self, session: AsyncSession, newsletter_id: str, kind: VisualKind, image: Image.Image,
-        filename: str, title: str, description: str, index: int,
+        self,
+        session: AsyncSession,
+        newsletter_id: str,
+        kind: VisualKind,
+        image: Image.Image,
+        filename: str,
+        title: str,
+        description: str,
+        index: int,
     ) -> GeneratedVisual:
         size = self.brand.dim("email_card").as_tuple()
         path = self._save_image(newsletter_id, "cards", filename, image)
         return self._record(
-            session, uuid.UUID(newsletter_id), kind=kind, title=title,
-            description=description, file_path=path, method=GenerationMethod.PROGRAMMATIC,
-            size=size, slide_number=index,
+            session,
+            uuid.UUID(newsletter_id),
+            kind=kind,
+            title=title,
+            description=description,
+            file_path=path,
+            method=GenerationMethod.PROGRAMMATIC,
+            size=size,
+            slide_number=index,
         )
 
     def generate_summary_card(self, session, newsletter_id, story, issue, index) -> GeneratedVisual:
         size = self.brand.dim("email_card").as_tuple()
         image = card_renderer.summary_card(self.brand, story, issue, size)
-        return self._card(session, newsletter_id, VisualKind.SUMMARY_CARD, image,
-                          f"summary_{index}.png", story.get("headline", "Top Story"), "Top story card", index)
+        return self._card(
+            session,
+            newsletter_id,
+            VisualKind.SUMMARY_CARD,
+            image,
+            f"summary_{index}.png",
+            story.get("headline", "Top Story"),
+            "Top story card",
+            index,
+        )
 
     def generate_tool_card(self, session, newsletter_id, tool, issue, index) -> GeneratedVisual:
         size = self.brand.dim("email_card").as_tuple()
         image = card_renderer.tool_card(self.brand, tool, issue, size)
-        return self._card(session, newsletter_id, VisualKind.TOOL_CARD, image,
-                          f"tool_{index}.png", tool.get("name", "Tool"), "AI tool card", index)
+        return self._card(
+            session,
+            newsletter_id,
+            VisualKind.TOOL_CARD,
+            image,
+            f"tool_{index}.png",
+            tool.get("name", "Tool"),
+            "AI tool card",
+            index,
+        )
 
     def generate_research_card(self, session, newsletter_id, research, issue) -> GeneratedVisual:
         size = self.brand.dim("email_card").as_tuple()
         image = card_renderer.research_card(self.brand, research, issue, size)
-        return self._card(session, newsletter_id, VisualKind.RESEARCH_CARD, image,
-                          "research.png", research.get("paper", "Research"), "Research card", 0)
+        return self._card(
+            session,
+            newsletter_id,
+            VisualKind.RESEARCH_CARD,
+            image,
+            "research.png",
+            research.get("paper", "Research"),
+            "Research card",
+            0,
+        )
 
     def generate_benchmark_card(self, session, newsletter_id, benchmark, issue) -> GeneratedVisual:
         size = self.brand.dim("email_card").as_tuple()
         image = card_renderer.benchmark_card(self.brand, benchmark, issue, size)
-        return self._card(session, newsletter_id, VisualKind.BENCHMARK_CARD, image,
-                          "benchmark.png", benchmark.get("title", "Benchmark"), "Benchmark card", 0)
+        return self._card(
+            session,
+            newsletter_id,
+            VisualKind.BENCHMARK_CARD,
+            image,
+            "benchmark.png",
+            benchmark.get("title", "Benchmark"),
+            "Benchmark card",
+            0,
+        )
 
     def generate_takeaway_card(self, session, newsletter_id, takeaways, issue) -> GeneratedVisual:
         size = self.brand.dim("email_card").as_tuple()
         image = card_renderer.takeaway_card(self.brand, takeaways, issue, size)
-        return self._card(session, newsletter_id, VisualKind.TAKEAWAY_CARD, image,
-                          "takeaway.png", "Final takeaways", "Takeaways card", 0)
+        return self._card(
+            session,
+            newsletter_id,
+            VisualKind.TAKEAWAY_CARD,
+            image,
+            "takeaway.png",
+            "Final takeaways",
+            "Takeaways card",
+            0,
+        )
 
     # ------------------------------------------------------------------ #
     # Orchestration
@@ -196,9 +271,7 @@ class VisualGenerationAgent:
         )
         return draft.content if draft and draft.content else {}
 
-    async def generate_all_visuals(
-        self, newsletter_id: str, content: dict | None = None
-    ) -> dict[str, Any]:
+    async def generate_all_visuals(self, newsletter_id: str, content: dict | None = None) -> dict[str, Any]:
         logger.info("visual_generation_started", newsletter_id=newsletter_id)
         async with self.session_factory() as session:
             content = await self._load_content(session, newsletter_id, content)
@@ -206,9 +279,7 @@ class VisualGenerationAgent:
             nid = uuid.UUID(newsletter_id)
 
             # Regenerate the full set (idempotent).
-            await session.execute(
-                delete(GeneratedVisual).where(GeneratedVisual.newsletter_id == nid)
-            )
+            await session.execute(delete(GeneratedVisual).where(GeneratedVisual.newsletter_id == nid))
 
             visuals: list[GeneratedVisual] = []
             visuals.append(await self.generate_cover_image(session, newsletter_id, content))
@@ -221,7 +292,9 @@ class VisualGenerationAgent:
                 visuals.append(self.generate_research_card(session, newsletter_id, content["research"], issue))
             if content.get("benchmark"):
                 visuals.append(self.generate_benchmark_card(session, newsletter_id, content["benchmark"], issue))
-            visuals.append(self.generate_takeaway_card(session, newsletter_id, content.get("final_takeaways", []), issue))
+            visuals.append(
+                self.generate_takeaway_card(session, newsletter_id, content.get("final_takeaways", []), issue)
+            )
 
             await session.flush()
             metadata = {
@@ -231,9 +304,7 @@ class VisualGenerationAgent:
                 "issue_number": issue,
                 "visuals": [self.create_visual_metadata(v) for v in visuals],
             }
-            metadata_path = self.storage.write_json(
-                f"{newsletter_dir(newsletter_id)}/metadata.json", metadata
-            )
+            metadata_path = self.storage.write_json(f"{newsletter_dir(newsletter_id)}/metadata.json", metadata)
             visual_ids = [str(v.id) for v in visuals]
             await session.commit()
 

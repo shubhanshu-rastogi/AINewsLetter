@@ -21,7 +21,9 @@ class FactCheckResult(UUIDMixin, TimestampMixin, Base):
 
     article_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("collected_articles.id", ondelete="CASCADE"),
-        nullable=False, unique=True, index=True,
+        nullable=False,
+        unique=True,
+        index=True,
     )
 
     url_accessible: Mapped[bool | None] = mapped_column(Boolean)
@@ -35,4 +37,4 @@ class FactCheckResult(UUIDMixin, TimestampMixin, Base):
     fact_check_notes: Mapped[str | None] = mapped_column(Text)
     verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
-    article: Mapped["CollectedArticle"] = relationship(back_populates="fact_check_result")
+    article: Mapped[CollectedArticle] = relationship(back_populates="fact_check_result")

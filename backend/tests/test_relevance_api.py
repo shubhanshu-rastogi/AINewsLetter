@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import uuid
 from datetime import datetime, timezone
 
 import pytest
@@ -31,26 +30,32 @@ def api_client(tmp_path):
         now = datetime.now(timezone.utc)
         async with sf() as s:
             src = ContentSource(
-                source_name="Docs", source_type=SourceType.DOCUMENTATION,
-                source_url="https://ex.com", priority=1, credibility_score=0.95,
-                freshness_score=0.8, relevance_score=0.9,
+                source_name="Docs",
+                source_type=SourceType.DOCUMENTATION,
+                source_url="https://ex.com",
+                priority=1,
+                credibility_score=0.95,
+                freshness_score=0.8,
+                relevance_score=0.9,
                 preferred_collection_method=CollectionMethod.DOCUMENTATION,
                 category="Agentic AI Engineering",
             )
             s.add(src)
             await s.flush()
             for i in range(4):
-                s.add(CollectedArticle(
-                    source_id=src.id,
-                    title=f"AI agent orchestration and evaluation guide {i}",
-                    url=f"https://ex.com/a{i}",
-                    raw_content="agents orchestration architecture evaluation enterprise testing " * 8,
-                    status=ArticleStatus.NEW,
-                    credibility_score=0.95,
-                    published_date=now,
-                    source_category="Agentic AI Engineering",
-                    newsletter_section=NewsletterSection.AGENTIC_AI_ENGINEERING,
-                ))
+                s.add(
+                    CollectedArticle(
+                        source_id=src.id,
+                        title=f"AI agent orchestration and evaluation guide {i}",
+                        url=f"https://ex.com/a{i}",
+                        raw_content="agents orchestration architecture evaluation enterprise testing " * 8,
+                        status=ArticleStatus.NEW,
+                        credibility_score=0.95,
+                        published_date=now,
+                        source_category="Agentic AI Engineering",
+                        newsletter_section=NewsletterSection.AGENTIC_AI_ENGINEERING,
+                    )
+                )
             await s.commit()
 
     asyncio.run(_setup())

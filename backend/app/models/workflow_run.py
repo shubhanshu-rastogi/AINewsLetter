@@ -41,8 +41,8 @@ class WorkflowRun(UUIDMixin, TimestampMixin, Base):
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
-    newsletter: Mapped["Newsletter | None"] = relationship(back_populates="workflow_runs")
-    agent_runs: Mapped[list["AgentRun"]] = relationship(
+    newsletter: Mapped[Newsletter | None] = relationship(back_populates="workflow_runs")
+    agent_runs: Mapped[list[AgentRun]] = relationship(
         back_populates="workflow_run",
         lazy="selectin",
     )

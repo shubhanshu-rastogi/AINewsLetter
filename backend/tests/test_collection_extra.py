@@ -122,9 +122,11 @@ async def test_robots_allows_when_unreachable(monkeypatch) -> None:
 
 # --- web extraction branches --- #
 def test_web_parse_og_title() -> None:
-    html = '<html><head><meta property="og:title" content="OG Title">' \
-           '<meta property="og:description" content="OG Desc"></head>' \
-           "<body><p>loose text</p></body></html>"
+    html = (
+        '<html><head><meta property="og:title" content="OG Title">'
+        '<meta property="og:description" content="OG Desc"></head>'
+        "<body><p>loose text</p></body></html>"
+    )
     article = web_collector.parse_page(html, "https://ex.com")
     assert article.title == "OG Title"
     assert article.summary == "OG Desc"
@@ -157,7 +159,8 @@ def test_compute_freshness_buckets() -> None:
 
 # --- collector fallback path --- #
 async def test_collector_uses_fallback(session_factory, monkeypatch) -> None:
-    from app.agents.source_collection import rss_collector, web_collector as wc
+    from app.agents.source_collection import rss_collector
+    from app.agents.source_collection import web_collector as wc
 
     async def rss_boom(url, **kw):
         raise FetchError("rss down")

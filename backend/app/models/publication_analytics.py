@@ -36,4 +36,4 @@ class PublicationAnalytics(UUIDMixin, TimestampMixin, Base):
     growth_metrics: Mapped[dict | None] = mapped_column(JSON)
     is_placeholder: Mapped[bool | None] = mapped_column(Boolean)
 
-    newsletter: Mapped["Newsletter"] = relationship()
+    newsletter: Mapped[Newsletter] = relationship()

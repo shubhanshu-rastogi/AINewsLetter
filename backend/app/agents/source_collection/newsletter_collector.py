@@ -22,7 +22,5 @@ async def collect_newsletter_source(source: ContentSource) -> list[RawArticle]:
         articles = await collect_rss(source, limit=settings.NEWSLETTER_BATCH_SIZE)
     else:
         articles = await collect_website(source)
-    logger.info(
-        "trend_source_collected", source=source.source_name, count=len(articles)
-    )
+    logger.info("trend_source_collected", source=source.source_name, count=len(articles))
     return articles

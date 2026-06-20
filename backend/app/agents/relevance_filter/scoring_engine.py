@@ -12,7 +12,6 @@ from datetime import datetime, timezone
 
 from app.agents import taxonomy
 from app.models.collected_article import CollectedArticle
-from app.models.enums import NewsletterSection as NS
 from app.models.enums import SourceType
 
 STALE_DAYS = 14
@@ -76,9 +75,7 @@ def freshness_dimension(published: datetime | None, *, now: datetime | None = No
 
 
 def newsletter_relevance_dimension(text: str) -> float:
-    total_hits = sum(
-        taxonomy.count_hits(text, kws) for kws in taxonomy.SECTION_KEYWORDS.values()
-    )
+    total_hits = sum(taxonomy.count_hits(text, kws) for kws in taxonomy.SECTION_KEYWORDS.values())
     return _clamp(40 + total_hits * 8)
 
 

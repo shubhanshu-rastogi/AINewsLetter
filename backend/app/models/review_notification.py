@@ -25,4 +25,4 @@ class ReviewNotification(UUIDMixin, TimestampMixin, Base):
     status: Mapped[str | None] = mapped_column(String(30), default="prepared")
     payload: Mapped[dict | None] = mapped_column(JSON)
 
-    review_session: Mapped["ReviewSession"] = relationship(back_populates="notifications")
+    review_session: Mapped[ReviewSession] = relationship(back_populates="notifications")

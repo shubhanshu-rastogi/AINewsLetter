@@ -23,4 +23,4 @@ class CarouselOutline(UUIDMixin, TimestampMixin, Base):
     )
     slides: Mapped[list | None] = mapped_column(JSON)
 
-    newsletter: Mapped["Newsletter"] = relationship(back_populates="carousel_outlines")
+    newsletter: Mapped[Newsletter] = relationship(back_populates="carousel_outlines")

@@ -27,18 +27,35 @@ CONTENT = {
     "cover": {"title": "AI & Quality Engineering Weekly", "issue_number": 1},
     "executive_summary": "This week: agents ship, evals mature, benchmarks climb.",
     "top_stories": [
-        {"headline": "OpenAI ships Agents SDK", "what_happened": "Orchestration, guardrails, tracing.",
-         "citation": {"source_name": "OpenAI", "publication_date": "2026-06-18"}},
-        {"headline": "Eval gates go mainstream", "what_happened": "CI quality gates with LLM judging.",
-         "citation": {"source_name": "InfoQ", "publication_date": "2026-06-17"}},
+        {
+            "headline": "OpenAI ships Agents SDK",
+            "what_happened": "Orchestration, guardrails, tracing.",
+            "citation": {"source_name": "OpenAI", "publication_date": "2026-06-18"},
+        },
+        {
+            "headline": "Eval gates go mainstream",
+            "what_happened": "CI quality gates with LLM judging.",
+            "citation": {"source_name": "InfoQ", "publication_date": "2026-06-17"},
+        },
     ],
-    "tools": [{"name": "Playwright AI", "what_it_does": "Generate tests from natural language.",
-               "citation": {"source_name": "TestGuild", "publication_date": "2026-06-16"}}],
+    "tools": [
+        {
+            "name": "Playwright AI",
+            "what_it_does": "Generate tests from natural language.",
+            "citation": {"source_name": "TestGuild", "publication_date": "2026-06-16"},
+        }
+    ],
     "testing": {"title": "LLM-as-judge", "insight": "Rubric-based judging in CI."},
-    "research": {"paper": "Agent-authored tests", "key_findings": "High coverage.",
-                 "citation": {"source_name": "arXiv", "publication_date": "2026-06-15"}},
-    "benchmark": {"title": "SWE-bench new high", "what_improved": "Top agents improve; gaps remain.",
-                  "citation": {"source_name": "SWE-bench", "publication_date": "2026-06-14"}},
+    "research": {
+        "paper": "Agent-authored tests",
+        "key_findings": "High coverage.",
+        "citation": {"source_name": "arXiv", "publication_date": "2026-06-15"},
+    },
+    "benchmark": {
+        "title": "SWE-bench new high",
+        "what_improved": "Top agents improve; gaps remain.",
+        "citation": {"source_name": "SWE-bench", "publication_date": "2026-06-14"},
+    },
     "trends": [{"signal": "Agent observability"}],
     "final_takeaways": ["Pilot agent frameworks", "Add eval gates", "Track benchmarks"],
 }
@@ -87,9 +104,13 @@ def test_prompt_generation() -> None:
 def test_programmatic_card_rendering() -> None:
     brand = load_brand_config()
     img = card_renderer.render_card(
-        brand, size=(1080, 1080), label="Top Story",
+        brand,
+        size=(1080, 1080),
+        label="Top Story",
         title="A very long headline that definitely exceeds eight words for truncation testing here",
-        body="body text", footer_left="footer", badge="3/10",
+        body="body text",
+        footer_left="footer",
+        badge="3/10",
     )
     assert img.size == (1080, 1080)
     assert img.mode == "RGB"
@@ -210,18 +231,22 @@ async def test_version_missing_visual_raises(session_factory, storage) -> None:
 
 @pytest.mark.parametrize(
     "kind",
-    [VisualKind.COVER, VisualKind.CAROUSEL_SLIDE, VisualKind.SUMMARY_CARD,
-     VisualKind.TOOL_CARD, VisualKind.RESEARCH_CARD, VisualKind.BENCHMARK_CARD,
-     VisualKind.TAKEAWAY_CARD],
+    [
+        VisualKind.COVER,
+        VisualKind.CAROUSEL_SLIDE,
+        VisualKind.SUMMARY_CARD,
+        VisualKind.TOOL_CARD,
+        VisualKind.RESEARCH_CARD,
+        VisualKind.BENCHMARK_CARD,
+        VisualKind.TAKEAWAY_CARD,
+    ],
 )
 async def test_regenerate_each_visual_kind(session_factory, storage, kind) -> None:
     nid = await _seed_newsletter(session_factory)
     agent = VisualGenerationAgent(session_factory, storage=storage)
     await agent.generate_all_visuals(nid)
     async with session_factory() as s:
-        visual = await s.scalar(
-            select(GeneratedVisual).where(GeneratedVisual.visual_kind == kind.value)
-        )
+        visual = await s.scalar(select(GeneratedVisual).where(GeneratedVisual.visual_kind == kind.value))
     out = await agent.version_visual(str(visual.id), reason="refresh")
     assert out["version"] == 2
     assert os.path.exists(out["file_path"])
@@ -255,13 +280,21 @@ async def test_workflow_integration(workflow_service, session_factory, monkeypat
     from app.models.enums import CollectionMethod, SourceType
 
     async with session_factory() as s:
-        s.add(ContentSource(
-            source_name="OpenAI", source_type=SourceType.RSS, source_url="https://openai.com",
-            rss_url="https://openai.com/feed", priority=1, credibility_score=0.95,
-            freshness_score=0.9, relevance_score=0.9,
-            preferred_collection_method=CollectionMethod.RSS,
-            fallback_collection_method=CollectionMethod.WEB, category="AI",
-        ))
+        s.add(
+            ContentSource(
+                source_name="OpenAI",
+                source_type=SourceType.RSS,
+                source_url="https://openai.com",
+                rss_url="https://openai.com/feed",
+                priority=1,
+                credibility_score=0.95,
+                freshness_score=0.9,
+                relevance_score=0.9,
+                preferred_collection_method=CollectionMethod.RSS,
+                fallback_collection_method=CollectionMethod.WEB,
+                category="AI",
+            )
+        )
         await s.commit()
 
     result = await workflow_service.start_newsletter_workflow()

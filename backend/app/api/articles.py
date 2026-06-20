@@ -105,9 +105,7 @@ async def relevance_stats(session: AsyncSession = Depends(get_session)) -> dict:
 
 # --- single article (dynamic path last) --- #
 @router.get("/{article_id}", response_model=ArticleDetail)
-async def get_article(
-    article_id: uuid.UUID, session: AsyncSession = Depends(get_session)
-) -> CollectedArticle:
+async def get_article(article_id: uuid.UUID, session: AsyncSession = Depends(get_session)) -> CollectedArticle:
     article = await session.get(CollectedArticle, article_id)
     if article is None:
         raise HTTPException(status_code=404, detail="Article not found.")

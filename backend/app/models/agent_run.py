@@ -42,4 +42,4 @@ class AgentRun(UUIDMixin, TimestampMixin, Base):
     execution_time: Mapped[float | None] = mapped_column(Float)  # seconds
     error_message: Mapped[str | None] = mapped_column(Text)
 
-    workflow_run: Mapped["WorkflowRun | None"] = relationship(back_populates="agent_runs")
+    workflow_run: Mapped[WorkflowRun | None] = relationship(back_populates="agent_runs")

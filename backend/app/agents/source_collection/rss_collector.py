@@ -19,9 +19,7 @@ def _entry_content(entry) -> str | None:
     return entry.get("summary") or entry.get("description")
 
 
-async def collect_rss(
-    source: ContentSource, *, limit: int | None = None
-) -> list[RawArticle]:
+async def collect_rss(source: ContentSource, *, limit: int | None = None) -> list[RawArticle]:
     """Fetch and parse an RSS/Atom feed into raw articles."""
     feed_url = source.rss_url or source.source_url
     limit = limit or settings.RSS_BATCH_SIZE
@@ -41,8 +39,7 @@ async def collect_rss(
                 title=entry.get("title", "Untitled"),
                 url=link,
                 author=entry.get("author"),
-                published_date=entry.get("published_parsed")
-                or entry.get("updated_parsed"),
+                published_date=entry.get("published_parsed") or entry.get("updated_parsed"),
                 raw_content=_entry_content(entry),
                 summary=entry.get("summary"),
                 categories=[t.get("term") for t in entry.get("tags", []) if t.get("term")],

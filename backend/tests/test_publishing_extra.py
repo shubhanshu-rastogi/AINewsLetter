@@ -6,7 +6,6 @@ import uuid
 
 import httpx
 import pytest
-from sqlalchemy import select
 
 from app.agents.publishing import beehiiv_publisher, linkedin_publisher, publication_tracker
 from app.agents.publishing.exceptions import RetryablePublishError
@@ -15,7 +14,6 @@ from app.core.config import settings
 from app.models.carousel_outline import CarouselOutline
 from app.models.enums import (
     NewsletterStatus,
-    PublicationChannel,
     ReviewState,
     ReviewStatus,
     VisualType,
@@ -31,13 +29,20 @@ CONTENT = {
     "executive_summary": "Briefing.",
     "top_stories": [{"headline": "Agents ship", "what_happened": "x"}],
     "tools": [{"name": "Tool", "what_it_does": "y"}],
-    "testing": {"title": "t"}, "research": {"paper": "r"}, "benchmark": {"title": "b"},
-    "trends": [], "final_takeaways": ["z"],
+    "testing": {"title": "t"},
+    "research": {"paper": "r"},
+    "benchmark": {"title": "b"},
+    "trends": [],
+    "final_takeaways": ["z"],
 }
 PACKAGE = {
-    "title": "AI & QE Weekly", "issue_number": 1, "newsletter_draft": CONTENT,
+    "title": "AI & QE Weekly",
+    "issue_number": 1,
+    "newsletter_draft": CONTENT,
     "linkedin_post": {"body": "post", "hashtags": ["#AI"]},
-    "carousel_outline": [{"slide": 1}], "visuals": [], "cover_image_url": "https://x/cover.png",
+    "carousel_outline": [{"slide": 1}],
+    "visuals": [],
+    "cover_image_url": "https://x/cover.png",
 }
 
 
@@ -49,10 +54,22 @@ async def _seed(session_factory) -> str:
         s.add(NewsletterDraft(newsletter_id=nl.id, content=CONTENT, current_version=1))
         s.add(LinkedInPost(newsletter_id=nl.id, body="post", hashtags=["#AI"]))
         s.add(CarouselOutline(newsletter_id=nl.id, slides=[{"slide": 1}]))
-        s.add(GeneratedVisual(newsletter_id=nl.id, visual_type=VisualType.HERO,
-                              visual_kind="cover", file_path="/x/cover.png", width=1200, height=630, version=1))
-        s.add(ReviewSession(newsletter_id=nl.id, review_status=ReviewStatus.APPROVED,
-                            review_state=ReviewState.APPROVED.value))
+        s.add(
+            GeneratedVisual(
+                newsletter_id=nl.id,
+                visual_type=VisualType.HERO,
+                visual_kind="cover",
+                file_path="/x/cover.png",
+                width=1200,
+                height=630,
+                version=1,
+            )
+        )
+        s.add(
+            ReviewSession(
+                newsletter_id=nl.id, review_status=ReviewStatus.APPROVED, review_state=ReviewState.APPROVED.value
+            )
+        )
         await s.commit()
         return str(nl.id)
 

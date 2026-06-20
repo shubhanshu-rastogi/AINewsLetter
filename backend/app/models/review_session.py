@@ -43,27 +43,27 @@ class ReviewSession(UUIDMixin, TimestampMixin, Base):
     comments: Mapped[str | None] = mapped_column(Text)
 
     # Extended review lifecycle (richer than the legacy review_status enum)
-    review_state: Mapped[str] = mapped_column(
-        String(30), default=ReviewState.PENDING.value, nullable=False, index=True
-    )
+    review_state: Mapped[str] = mapped_column(String(30), default=ReviewState.PENDING.value, nullable=False, index=True)
     notion_page_url: Mapped[str | None] = mapped_column(String(2048))
     approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     rejected_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     version_number: Mapped[int | None] = mapped_column(Integer)
 
-    newsletter: Mapped["Newsletter"] = relationship(back_populates="review_sessions")
-    feedback_items: Mapped[list["FeedbackItem"]] = relationship(
+    newsletter: Mapped[Newsletter] = relationship(back_populates="review_sessions")
+    feedback_items: Mapped[list[FeedbackItem]] = relationship(
         back_populates="review_session",
         cascade="all, delete-orphan",
         lazy="selectin",
     )
-    package: Mapped["ReviewPackage | None"] = relationship(
-        back_populates="review_session", cascade="all, delete-orphan",
-        uselist=False, lazy="selectin",
+    package: Mapped[ReviewPackage | None] = relationship(
+        back_populates="review_session",
+        cascade="all, delete-orphan",
+        uselist=False,
+        lazy="selectin",
     )
-    regeneration_plans: Mapped[list["RegenerationPlan"]] = relationship(
+    regeneration_plans: Mapped[list[RegenerationPlan]] = relationship(
         back_populates="review_session", cascade="all, delete-orphan", lazy="selectin"
     )
-    notifications: Mapped[list["ReviewNotification"]] = relationship(
+    notifications: Mapped[list[ReviewNotification]] = relationship(
         back_populates="review_session", cascade="all, delete-orphan", lazy="selectin"
     )

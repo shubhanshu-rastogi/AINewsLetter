@@ -47,4 +47,4 @@ class FeedbackItem(UUIDMixin, TimestampMixin, Base):
     action_required: Mapped[str | None] = mapped_column(Text)
     regeneration_needed: Mapped[bool | None] = mapped_column(Boolean)
 
-    review_session: Mapped["ReviewSession"] = relationship(back_populates="feedback_items")
+    review_session: Mapped[ReviewSession] = relationship(back_populates="feedback_items")

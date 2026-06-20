@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import func, select
+from sqlalchemy import select
 
 from app.agents.newsletter_writer.writer_agent import NewsletterWriterAgent
 from app.agents.review_feedback import notion_review
@@ -18,15 +18,16 @@ from app.models.content_source import ContentSource
 from app.models.enums import (
     ArticleStatus,
     CollectionMethod,
-    NewsletterSection as NS,
     ResolutionStatus,
     SourceType,
     VerificationStatus,
 )
+from app.models.enums import (
+    NewsletterSection as NS,
+)
 from app.models.feedback_item import FeedbackItem
 from app.models.generated_visual import GeneratedVisual
 from app.models.linkedin_post import LinkedInPost
-from app.models.review_session import ReviewSession
 
 SAMPLES = [
     ("Agentic AI orchestration ships", NS.AGENTIC_AI_ENGINEERING, 95),
@@ -41,24 +42,35 @@ async def _build_full_newsletter(session_factory) -> str:
     """Seed verified articles, then run writer + visual agents to build everything."""
     async with session_factory() as s:
         src = ContentSource(
-            source_name="OpenAI", source_type=SourceType.DOCUMENTATION,
-            source_url="https://openai.com", priority=1, credibility_score=0.95,
-            freshness_score=0.9, relevance_score=0.9,
-            preferred_collection_method=CollectionMethod.DOCUMENTATION, category="AI",
+            source_name="OpenAI",
+            source_type=SourceType.DOCUMENTATION,
+            source_url="https://openai.com",
+            priority=1,
+            credibility_score=0.95,
+            freshness_score=0.9,
+            relevance_score=0.9,
+            preferred_collection_method=CollectionMethod.DOCUMENTATION,
+            category="AI",
         )
         s.add(src)
         await s.flush()
         for i, (title, section, conf) in enumerate(SAMPLES):
-            s.add(CollectedArticle(
-                source_id=src.id, title=title, url=f"https://openai.com/{i}",
-                summary="Summary text.", raw_content="content " * 30,
-                status=ArticleStatus.PROCESSED,
-                # Only first research article is selected initially.
-                is_selected=(title != "Research: eval methods survey"),
-                newsletter_section=section, overall_confidence_score=conf,
-                verification_status=VerificationStatus.VERIFIED.value,
-                published_date=datetime.now(timezone.utc),
-            ))
+            s.add(
+                CollectedArticle(
+                    source_id=src.id,
+                    title=title,
+                    url=f"https://openai.com/{i}",
+                    summary="Summary text.",
+                    raw_content="content " * 30,
+                    status=ArticleStatus.PROCESSED,
+                    # Only first research article is selected initially.
+                    is_selected=(title != "Research: eval methods survey"),
+                    newsletter_section=section,
+                    overall_confidence_score=conf,
+                    verification_status=VerificationStatus.VERIFIED.value,
+                    published_date=datetime.now(timezone.utc),
+                )
+            )
         await s.commit()
 
     result = await NewsletterWriterAgent(session_factory).generate_newsletter()
@@ -84,17 +96,27 @@ async def test_real_targeted_regeneration(session_factory) -> None:
     await agent.regenerate_carousel_slide(nid, 1)
     await agent.regenerate_cover_image(nid)
     async with session_factory() as s:
-        cover = await s.scalar(select(GeneratedVisual).where(
-            GeneratedVisual.newsletter_id == uuid.UUID(nid),
-            GeneratedVisual.visual_kind == "cover"))
+        cover = await s.scalar(
+            select(GeneratedVisual).where(
+                GeneratedVisual.newsletter_id == uuid.UUID(nid), GeneratedVisual.visual_kind == "cover"
+            )
+        )
     assert cover.version >= 2
 
     # Replace article swaps the selected research article.
     await agent.replace_article_and_regenerate_section(nid, "research")
     async with session_factory() as s:
-        selected = (await s.execute(select(CollectedArticle).where(
-            CollectedArticle.newsletter_section == NS.RESEARCH_WATCH,
-            CollectedArticle.is_selected.is_(True)))).scalars().all()
+        selected = (
+            (
+                await s.execute(
+                    select(CollectedArticle).where(
+                        CollectedArticle.newsletter_section == NS.RESEARCH_WATCH, CollectedArticle.is_selected.is_(True)
+                    )
+                )
+            )
+            .scalars()
+            .all()
+        )
     assert len(selected) == 1
     assert selected[0].title == "Research: eval methods survey"  # swapped to the alternative
 
@@ -106,11 +128,13 @@ async def test_process_feedback_with_stored_items(session_factory) -> None:
 
     # Pre-persist a feedback item, then process without passing items.
     async with session_factory() as s:
-        s.add(FeedbackItem(
-            review_session_id=uuid.UUID(rid),
-            feedback_text="Make the executive summary shorter.",
-            resolution_status=ResolutionStatus.OPEN,
-        ))
+        s.add(
+            FeedbackItem(
+                review_session_id=uuid.UUID(rid),
+                feedback_text="Make the executive summary shorter.",
+                resolution_status=ResolutionStatus.OPEN,
+            )
+        )
         await s.commit()
 
     agent = FeedbackAgent(session_factory)

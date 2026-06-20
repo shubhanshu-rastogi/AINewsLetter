@@ -68,8 +68,10 @@ async def regenerate(newsletter_id: uuid.UUID, payload: RegenerateRequest) -> di
     agent = NewsletterWriterAgent(AsyncSessionLocal)
     try:
         return await agent.regenerate_section(
-            str(newsletter_id), payload.section,
-            reason=payload.reason, changed_by=payload.changed_by,
+            str(newsletter_id),
+            payload.section,
+            reason=payload.reason,
+            changed_by=payload.changed_by,
         )
     except UnknownSectionError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
@@ -78,12 +80,8 @@ async def regenerate(newsletter_id: uuid.UUID, payload: RegenerateRequest) -> di
 
 
 @router.get("/{newsletter_id}", response_model=NewsletterDraftRead)
-async def get_newsletter(
-    newsletter_id: uuid.UUID, session: AsyncSession = Depends(get_session)
-) -> NewsletterDraft:
-    draft = await session.scalar(
-        select(NewsletterDraft).where(NewsletterDraft.newsletter_id == newsletter_id)
-    )
+async def get_newsletter(newsletter_id: uuid.UUID, session: AsyncSession = Depends(get_session)) -> NewsletterDraft:
+    draft = await session.scalar(select(NewsletterDraft).where(NewsletterDraft.newsletter_id == newsletter_id))
     if draft is None:
         raise HTTPException(status_code=404, detail="Newsletter draft not found.")
     return draft
@@ -102,32 +100,22 @@ async def get_versions(
 
 
 @router.get("/{newsletter_id}/linkedin", response_model=list[LinkedInPostRead])
-async def get_linkedin(
-    newsletter_id: uuid.UUID, session: AsyncSession = Depends(get_session)
-) -> list[LinkedInPost]:
+async def get_linkedin(newsletter_id: uuid.UUID, session: AsyncSession = Depends(get_session)) -> list[LinkedInPost]:
     stmt = select(LinkedInPost).where(LinkedInPost.newsletter_id == newsletter_id)
     return list((await session.execute(stmt)).scalars().all())
 
 
 @router.get("/{newsletter_id}/carousel", response_model=CarouselRead)
-async def get_carousel(
-    newsletter_id: uuid.UUID, session: AsyncSession = Depends(get_session)
-) -> CarouselOutline:
-    carousel = await session.scalar(
-        select(CarouselOutline).where(CarouselOutline.newsletter_id == newsletter_id)
-    )
+async def get_carousel(newsletter_id: uuid.UUID, session: AsyncSession = Depends(get_session)) -> CarouselOutline:
+    carousel = await session.scalar(select(CarouselOutline).where(CarouselOutline.newsletter_id == newsletter_id))
     if carousel is None:
         raise HTTPException(status_code=404, detail="Carousel not found.")
     return carousel
 
 
 @router.get("/{newsletter_id}/subjects")
-async def get_subjects(
-    newsletter_id: uuid.UUID, session: AsyncSession = Depends(get_session)
-) -> dict:
-    draft = await session.scalar(
-        select(NewsletterDraft).where(NewsletterDraft.newsletter_id == newsletter_id)
-    )
+async def get_subjects(newsletter_id: uuid.UUID, session: AsyncSession = Depends(get_session)) -> dict:
+    draft = await session.scalar(select(NewsletterDraft).where(NewsletterDraft.newsletter_id == newsletter_id))
     if draft is None:
         raise HTTPException(status_code=404, detail="Newsletter draft not found.")
     return {"email_subjects": draft.email_subjects or []}

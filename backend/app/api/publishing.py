@@ -108,7 +108,8 @@ async def retry_publication(publication_id: uuid.UUID) -> PublishResponse:
     # retry_publication re-runs a single channel; surface the full publish result.
     result = out["result"] or {}
     return PublishResponse(
-        newsletter_id="", overall=result.get("status", "unknown"),
+        newsletter_id="",
+        overall=result.get("status", "unknown"),
         publish_status=result.get("status", "unknown"),
         channels={out["channel"]: result},
     )

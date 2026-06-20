@@ -15,9 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 SessionFactory = Callable[[], AsyncSession]
 
-_session_factory: ContextVar[SessionFactory | None] = ContextVar(
-    "workflow_session_factory", default=None
-)
+_session_factory: ContextVar[SessionFactory | None] = ContextVar("workflow_session_factory", default=None)
 
 
 def set_session_factory(factory: SessionFactory) -> Token:

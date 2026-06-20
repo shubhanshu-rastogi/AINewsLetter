@@ -12,9 +12,7 @@ from app.models.review_version import ReviewVersion
 
 async def next_version_number(session: AsyncSession, newsletter_id: uuid.UUID) -> int:
     current = await session.scalar(
-        select(func.max(ReviewVersion.version_number)).where(
-            ReviewVersion.newsletter_id == newsletter_id
-        )
+        select(func.max(ReviewVersion.version_number)).where(ReviewVersion.newsletter_id == newsletter_id)
     )
     return (current or 0) + 1
 

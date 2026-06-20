@@ -27,4 +27,4 @@ class RegenerationHistory(UUIDMixin, TimestampMixin, Base):
     changed_by: Mapped[str | None] = mapped_column(String(255))
     reason: Mapped[str | None] = mapped_column(Text)
 
-    newsletter: Mapped["Newsletter"] = relationship(back_populates="regeneration_history")
+    newsletter: Mapped[Newsletter] = relationship(back_populates="regeneration_history")

@@ -34,7 +34,9 @@ _LEGACY = {
 
 def send_review_notification(payload: dict) -> dict:
     """Email notification placeholder - logs the payload (no email sent yet)."""
-    logger.info("review_notification_prepared", **{k: payload[k] for k in ("review_session_id", "subject") if k in payload})
+    logger.info(
+        "review_notification_prepared", **{k: payload[k] for k in ("review_session_id", "subject") if k in payload}
+    )
     return payload
 
 
@@ -58,14 +60,15 @@ class ReviewAgent:
                     ReviewSession.newsletter_id == nid,
                     ReviewSession.review_state.in_(_ACTIVE_STATES),
                 )
-                .values(review_state=ReviewState.SUPERSEDED.value,
-                        review_status=ReviewStatus.CHANGES_REQUESTED)
+                .values(review_state=ReviewState.SUPERSEDED.value, review_status=ReviewStatus.CHANGES_REQUESTED)
             )
 
             version = await version_tracker.next_version_number(session, nid)
             review = ReviewSession(
-                newsletter_id=nid, reviewer=reviewer,
-                review_status=ReviewStatus.PENDING, review_state=ReviewState.PENDING.value,
+                newsletter_id=nid,
+                reviewer=reviewer,
+                review_status=ReviewStatus.PENDING,
+                review_state=ReviewState.PENDING.value,
                 version_number=version,
             )
             session.add(review)
@@ -84,9 +87,9 @@ class ReviewAgent:
                 or package.get("newsletter_draft", {}).get("executive_summary"),
                 "notion_page_url": notion_url,
             }
-            session.add(ReviewNotification(
-                review_session_id=review.id, channel="email", status="prepared", payload=payload
-            ))
+            session.add(
+                ReviewNotification(review_session_id=review.id, channel="email", status="prepared", payload=payload)
+            )
             send_review_notification(payload)
 
             newsletter = await session.get(Newsletter, nid)
@@ -115,9 +118,7 @@ class ReviewAgent:
     async def get_package(self, review_session_id: str) -> dict:
         async with self.session_factory() as session:
             pkg = await session.scalar(
-                select(ReviewPackage).where(
-                    ReviewPackage.review_session_id == uuid.UUID(str(review_session_id))
-                )
+                select(ReviewPackage).where(ReviewPackage.review_session_id == uuid.UUID(str(review_session_id)))
             )
             return pkg.package if pkg else {}
 
@@ -131,8 +132,13 @@ class ReviewAgent:
             return rows.scalars().all()
 
     async def _decide(
-        self, review_session_id: str, *, state: ReviewState, comments: str | None,
-        reviewer: str | None, newsletter_status: NewsletterStatus,
+        self,
+        review_session_id: str,
+        *,
+        state: ReviewState,
+        comments: str | None,
+        reviewer: str | None,
+        newsletter_status: NewsletterStatus,
     ) -> dict[str, Any]:
         now = datetime.now(timezone.utc)
         async with self.session_factory() as session:
@@ -152,7 +158,9 @@ class ReviewAgent:
             if newsletter is not None:
                 newsletter.status = newsletter_status
             await version_tracker.record_version(
-                session, rs.newsletter_id, review_session_id=rs.id,
+                session,
+                rs.newsletter_id,
+                review_session_id=rs.id,
                 reviewer_decision=state.value,
             )
             await session.commit()
@@ -160,16 +168,24 @@ class ReviewAgent:
         logger.info(f"review_{state.value}", review_session_id=review_session_id)
         return result
 
-    async def approve(self, review_session_id: str, comments: str | None = None,
-                      reviewer: str | None = None) -> dict[str, Any]:
+    async def approve(
+        self, review_session_id: str, comments: str | None = None, reviewer: str | None = None
+    ) -> dict[str, Any]:
         return await self._decide(
-            review_session_id, state=ReviewState.APPROVED, comments=comments,
-            reviewer=reviewer, newsletter_status=NewsletterStatus.APPROVED,
+            review_session_id,
+            state=ReviewState.APPROVED,
+            comments=comments,
+            reviewer=reviewer,
+            newsletter_status=NewsletterStatus.APPROVED,
         )
 
-    async def reject(self, review_session_id: str, comments: str | None = None,
-                     reviewer: str | None = None) -> dict[str, Any]:
+    async def reject(
+        self, review_session_id: str, comments: str | None = None, reviewer: str | None = None
+    ) -> dict[str, Any]:
         return await self._decide(
-            review_session_id, state=ReviewState.REJECTED, comments=comments,
-            reviewer=reviewer, newsletter_status=NewsletterStatus.ARCHIVED,
+            review_session_id,
+            state=ReviewState.REJECTED,
+            comments=comments,
+            reviewer=reviewer,
+            newsletter_status=NewsletterStatus.ARCHIVED,
         )

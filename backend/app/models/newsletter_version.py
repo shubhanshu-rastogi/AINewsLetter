@@ -28,4 +28,4 @@ class NewsletterVersion(UUIDMixin, TimestampMixin, Base):
     created_by: Mapped[str | None] = mapped_column(String(255))
     change_reason: Mapped[str | None] = mapped_column(Text)
 
-    newsletter: Mapped["Newsletter"] = relationship(back_populates="versions")
+    newsletter: Mapped[Newsletter] = relationship(back_populates="versions")

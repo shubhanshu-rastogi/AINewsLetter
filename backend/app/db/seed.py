@@ -41,9 +41,7 @@ DEFAULT_SETTINGS: dict[str, str] = {
 async def seed_categories(session: AsyncSession) -> int:
     created = 0
     for name, description in CATEGORIES:
-        exists = await session.scalar(
-            select(ArticleCategory).where(ArticleCategory.name == name)
-        )
+        exists = await session.scalar(select(ArticleCategory).where(ArticleCategory.name == name))
         if exists is None:
             session.add(ArticleCategory(name=name, description=description))
             created += 1
@@ -51,23 +49,17 @@ async def seed_categories(session: AsyncSession) -> int:
 
 
 async def seed_admin_user(session: AsyncSession) -> int:
-    exists = await session.scalar(
-        select(User).where(User.email == DEFAULT_ADMIN_EMAIL)
-    )
+    exists = await session.scalar(select(User).where(User.email == DEFAULT_ADMIN_EMAIL))
     if exists is not None:
         return 0
-    session.add(
-        User(email=DEFAULT_ADMIN_EMAIL, name=DEFAULT_ADMIN_NAME, role=UserRole.ADMIN)
-    )
+    session.add(User(email=DEFAULT_ADMIN_EMAIL, name=DEFAULT_ADMIN_NAME, role=UserRole.ADMIN))
     return 1
 
 
 async def seed_system_settings(session: AsyncSession) -> int:
     created = 0
     for key, value in DEFAULT_SETTINGS.items():
-        exists = await session.scalar(
-            select(SystemSetting).where(SystemSetting.key == key)
-        )
+        exists = await session.scalar(select(SystemSetting).where(SystemSetting.key == key))
         if exists is None:
             session.add(SystemSetting(key=key, value=value))
             created += 1
