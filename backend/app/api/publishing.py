@@ -14,7 +14,7 @@ from app.agents.publishing.exceptions import (
     ValidationFailedError,
 )
 from app.agents.publishing.publisher_agent import PublisherAgent
-from app.api.deps import get_session
+from app.api.deps import get_session, require_reviewer
 from app.db.session import AsyncSessionLocal
 from app.models.publication_analytics import PublicationAnalytics
 from app.models.publication_record import PublicationRecord
@@ -26,10 +26,10 @@ from app.schemas.publishing import (
     PublishResponse,
 )
 
-# Publishing actions (POST /api/publish/...)
-publish_router = APIRouter(tags=["publishing"])
-# Read-only publication history/analytics (GET /api/publications/...)
-publications_router = APIRouter(tags=["publications"])
+# Publishing actions (POST /api/publish/...) - protected
+publish_router = APIRouter(tags=["publishing"], dependencies=[Depends(require_reviewer)])
+# Read-only publication history/analytics (GET /api/publications/...) - protected
+publications_router = APIRouter(tags=["publications"], dependencies=[Depends(require_reviewer)])
 
 
 def _agent() -> PublisherAgent:

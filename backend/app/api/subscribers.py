@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.agents.publishing.subscriber_manager import SubscriberManager
+from app.api.deps import require_reviewer
 from app.db.session import AsyncSessionLocal
 from app.models.enums import SubscriberStatus
 from app.models.subscriber import Subscriber
@@ -15,7 +16,7 @@ from app.schemas.publishing import (
     UnsubscribeRequest,
 )
 
-router = APIRouter(tags=["subscribers"])
+router = APIRouter(tags=["subscribers"], dependencies=[Depends(require_reviewer)])
 
 
 def _manager() -> SubscriberManager:

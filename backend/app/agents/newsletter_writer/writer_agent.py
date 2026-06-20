@@ -10,11 +10,12 @@ from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy import delete, func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agents.newsletter_writer import linkedin_generator, llm, section_generator
 from app.agents.newsletter_writer.brand import BrandVoice, load_brand
-from app.agents.newsletter_writer.exceptions import UnknownSectionError
+from app.agents.newsletter_writer.exceptions import UnknownSectionError, WriterError
 from app.core.config import settings
 from app.core.logging import get_logger
 from app.models.carousel_outline import CarouselOutline
@@ -33,6 +34,7 @@ logger = get_logger("writer")
 MAX_STORIES = 5
 MAX_TOOLS = 3
 MAX_TRENDS = 3
+_ISSUE_ALLOC_RETRIES = 5
 REGENERATABLE = {
     "executive_summary",
     "top_stories",
@@ -170,15 +172,22 @@ class NewsletterWriterAgent:
             nl = await session.get(Newsletter, uuid.UUID(str(newsletter_id)))
             if nl is not None:
                 return nl
-        max_issue = await session.scalar(select(func.max(Newsletter.issue_number)))
-        nl = Newsletter(
-            title=self.brand.name,
-            issue_number=(max_issue or 0) + 1,
-            status=NewsletterStatus.DRAFT,
-        )
-        session.add(nl)
-        await session.flush()
-        return nl
+        # Allocate issue_number with retry-on-conflict so concurrent generations
+        # don't collide on the unique constraint (race on max()+1).
+        for _ in range(_ISSUE_ALLOC_RETRIES):
+            max_issue = await session.scalar(select(func.max(Newsletter.issue_number)))
+            nl = Newsletter(
+                title=self.brand.name,
+                issue_number=(max_issue or 0) + 1,
+                status=NewsletterStatus.DRAFT,
+            )
+            session.add(nl)
+            try:
+                await session.flush()
+                return nl
+            except IntegrityError:
+                await session.rollback()  # another generation took this number; retry
+        raise WriterError("Could not allocate a unique issue_number after retries.")
 
     async def _persist_sections(self, session: AsyncSession, newsletter_id: uuid.UUID, content: dict) -> int:
         await session.execute(delete(NewsletterSection).where(NewsletterSection.newsletter_id == newsletter_id))
