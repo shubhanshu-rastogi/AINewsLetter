@@ -4,6 +4,13 @@
 **Author:** Principal Software Architect
 **Scope:** Production-grade, multi-agent content pipeline for an AI / Software Engineering / QA / Enterprise Technology newsletter.
 
+> ⚠️ **This is the original design document and predates the build.** The
+> implementation diverged from several choices here, and a **React operator
+> console** (`frontend/`) was added that this document does not cover. For the
+> accurate, as-built system architecture (frontend → API → workflow → DB),
+> agent pipeline, and data flow, see
+> [`backend/docs/agent_dataflow.md`](backend/docs/agent_dataflow.md).
+
 ---
 
 ## 0. Executive Summary

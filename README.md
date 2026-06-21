@@ -11,7 +11,14 @@ newsletter (plus a LinkedIn post), generates cover/carousel visuals, runs an
 editorial pass, **pauses for a human review**, processes your feedback, and
 publishes to Beehiiv / LinkedIn / email.
 
-> 📐 Full system design: [`ARCHITECTURE.md`](ARCHITECTURE.md)
+A **React operator console** ([`frontend/`](frontend/)) drives the whole thing:
+trigger runs, watch live stage progress, review & approve, browse history with a
+shareable web page per issue, and manage API keys / models / feature flags from
+the UI.
+
+> 🖥️ Web UI: [`frontend/README.md`](frontend/README.md) ·
+> 📊 As-built architecture & data-flow diagrams: [`backend/docs/agent_dataflow.md`](backend/docs/agent_dataflow.md)
+> 📐 Original design doc: [`ARCHITECTURE.md`](ARCHITECTURE.md) ·
 > 🛠️ Operations & production docs: [`backend/docs/PRODUCTION.md`](backend/docs/PRODUCTION.md)
 
 ---
@@ -84,13 +91,28 @@ START → Source Collection → Relevance Filter → Categorization → Fact-Che
 
 ## Tech stack
 
-Python 3.12 · FastAPI · LangGraph · SQLAlchemy 2.0 (async) · asyncpg ·
-Alembic · PostgreSQL · Pydantic v2 / pydantic-settings · structlog (JSON +
-secret masking) · Redis (optional, with in-memory fallback) · APScheduler ·
-Prometheus · Pillow · httpx · feedparser · BeautifulSoup4 · Docker / Compose.
+**Backend:** Python 3.12 · FastAPI · LangGraph · SQLAlchemy 2.0 (async) ·
+asyncpg · Alembic · PostgreSQL · Pydantic v2 / pydantic-settings · structlog
+(JSON + secret masking) · cryptography (encrypted config) · Redis (optional,
+with in-memory fallback) · APScheduler · Prometheus · Pillow · httpx ·
+feedparser · BeautifulSoup4 · Docker / Compose.
+
+**Frontend:** React 18 · Vite · TypeScript · React Router (no other runtime deps).
 
 Optional, only when you enable real features: Anthropic SDK · OpenAI SDK ·
 Beehiiv API · LinkedIn API · Notion API.
+
+---
+
+## Project layout
+
+```
+.
+├── backend/      # FastAPI + LangGraph agents + DB (see backend/README.md)
+├── frontend/     # React + Vite operator console (see frontend/README.md)
+├── ARCHITECTURE.md          # original design doc (design-time)
+└── README.md     # you are here
+```
 
 ---
 
