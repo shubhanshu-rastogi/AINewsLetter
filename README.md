@@ -207,6 +207,17 @@ The dev server proxies API calls to the backend on `:8000`. If
 `REVIEW_AUTH_TOKEN` is set, the UI prompts for it as a login. See
 [`frontend/README.md`](frontend/README.md) for details.
 
+### Trigger a run from the UI
+
+1. Open **http://localhost:5173** (log in with the admin token if prompted).
+2. *(first time only)* On the **Dashboard**, click **Seed sources** to load the
+   curated source list.
+3. Click **➕ Trigger new issue**. You're taken to the live **run detail** view.
+4. Watch the **progress bar + stage stepper** advance through each agent.
+5. When it pauses at **Human review**, choose **Approve & publish**, **Request
+   changes** (type feedback → it regenerates), or **Reject**.
+6. Find past runs under **History**, each with an **Open ↗** link to its web page.
+
 ## Using the platform — end-to-end walkthrough (API)
 
 You can do everything the UI does directly over the **workflow API** (mounted at

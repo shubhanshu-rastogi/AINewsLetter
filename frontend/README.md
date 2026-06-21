@@ -31,12 +31,25 @@ cp .env.example .env        # optional; defaults proxy to localhost:8000
 npm run dev                 # http://localhost:5173
 ```
 
+Then open **http://localhost:5173**.
+
 Build for production:
 
 ```bash
 npm run build               # outputs static files to dist/
 npm run preview             # serve the built app locally
 ```
+
+## Trigger a run
+
+1. Make sure the backend is running (`uvicorn app.main:app --reload` in `backend/`).
+2. Open the app and log in if prompted (admin token = `REVIEW_AUTH_TOKEN`).
+3. On the **Dashboard**, click **Seed sources** once to load the curated sources.
+4. Click **➕ Trigger new issue** → the **run detail** page opens with a live
+   progress bar and stage stepper.
+5. When it pauses at **Human review**, **Approve & publish**, **Request changes**
+   (with feedback), or **Reject**.
+6. See all runs under **History**, each with an **Open ↗** link to its web page.
 
 ## Auth
 
