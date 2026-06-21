@@ -34,6 +34,9 @@ Pillow>=10.3
 prometheus-client>=0.20
 redis>=5.0
 
+# ---- Secret encryption (UI-managed config at rest) ----
+cryptography>=43.0
+
 # ---- Optional: OpenTelemetry tracing (enable with ENABLE_TRACING=true) ----
 # opentelemetry-sdk>=1.27
 # opentelemetry-instrumentation-fastapi>=0.48b0

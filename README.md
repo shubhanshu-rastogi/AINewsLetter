@@ -98,6 +98,7 @@ Beehiiv API · LinkedIn API · Notion API.
 
 - **Docker + Docker Compose** (recommended path — gives you Postgres too), **or**
 - **Python 3.12** and a reachable **PostgreSQL 14+** instance (local path).
+- **Node.js 18+** if you want the web UI ([`frontend/`](frontend/)).
 - No API keys are required to get started (see above).
 
 ---
@@ -156,11 +157,37 @@ curl -X POST http://localhost:8000/api/sources/seed
 
 ---
 
-## Using the platform — end-to-end walkthrough
+## Operator console (web UI)
 
-The newsletter lifecycle is driven by the **workflow API** (mounted at
-`/api/workflows`, outside the `/api/v1` prefix). All examples use `curl`; you
-can do the same interactively from `/docs`.
+A React + Vite dashboard in [`frontend/`](frontend/) is the easiest way to drive
+the platform — no `curl` required. It lets you:
+
+- **Trigger** a newsletter run with one click.
+- **Watch live progress** — a progress bar + stage stepper update in real time
+  as the run moves through each agent.
+- **Review & decide** when a run pauses: approve & publish, request changes
+  (feedback regenerates the draft), or reject.
+- **Browse history** of every run and its outcome.
+- **Set API keys, models, and feature flags from the UI** (Settings) — secrets
+  are encrypted at rest in the database, so you never touch `.env` to go live.
+
+```bash
+# backend (terminal 1)
+cd backend && uvicorn app.main:app --reload
+
+# frontend (terminal 2)
+cd frontend && npm install && npm run dev   # http://localhost:5173
+```
+
+The dev server proxies API calls to the backend on `:8000`. If
+`REVIEW_AUTH_TOKEN` is set, the UI prompts for it as a login. See
+[`frontend/README.md`](frontend/README.md) for details.
+
+## Using the platform — end-to-end walkthrough (API)
+
+You can do everything the UI does directly over the **workflow API** (mounted at
+`/api/workflows`, outside the `/api/v1` prefix). All examples use `curl`; you can
+also use the interactive docs at `/docs`.
 
 ### 1. Start a newsletter run
 
@@ -168,25 +195,29 @@ can do the same interactively from `/docs`.
 curl -X POST http://localhost:8000/api/workflows/newsletter/start
 ```
 
-This kicks off the pipeline. It runs collection → … → editorial review, then
-**pauses** at human review and returns `202 Accepted`:
+This kicks off the pipeline **in the background** and returns `202 Accepted`
+immediately so you can watch progress:
 
 ```json
 {
   "workflow_run_id": "….",
   "newsletter_id": "….",
   "issue_number": 1,
-  "current_step": "human_review",
-  "approval_status": "pending",
-  "paused": true
+  "run_state": "running",
+  "paused": false
 }
 ```
 
-### 2. Check status / inspect the draft
+### 2. Watch progress / inspect the draft
+
+Poll the status endpoint — it reports the live stage, a progress percentage, and
+a per-stage stepper. `run_state` moves `running → awaiting_review → completed`
+(or `rejected` / `failed`).
 
 ```bash
 curl http://localhost:8000/api/workflows/{workflow_run_id}/status
-curl http://localhost:8000/api/workflows/{workflow_run_id}/state   # full draft state
+curl http://localhost:8000/api/workflows                            # run history
+curl http://localhost:8000/api/workflows/{workflow_run_id}/state    # full draft state
 ```
 
 You can also read the produced artifacts directly:
@@ -319,7 +350,9 @@ publishing is on, and `REDIS_URL` when Redis is on.
 
 | Mount | Purpose |
 |---|---|
-| `/api/workflows` | Start runs, check status/state, submit review |
+| `/api/auth` | `config` (public), `login`, `verify` — single admin-token auth |
+| `/api/settings` 🔒 | Read/update UI-managed config (keys, models, flags) |
+| `/api/workflows` 🔒 | List runs, start (background), status + live progress, submit review |
 | `/api/sources` | Curated source registry |
 | `/api/articles` | Collected & scored articles |
 | `/api/facts` | Fact-check results |
@@ -375,6 +408,7 @@ gate. See [`backend/docs/cicd.md`](backend/docs/cicd.md).
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | Full system design (design-time) |
 | [`backend/docs/agent_dataflow.md`](backend/docs/agent_dataflow.md) | As-built agent pipeline & data-flow diagrams |
 | [`backend/README.md`](backend/README.md) | Backend developer guide |
+| [`frontend/README.md`](frontend/README.md) | Operator console (web UI) guide |
 | [`backend/docs/PRODUCTION.md`](backend/docs/PRODUCTION.md) | Production index |
 | [`backend/docs/deployment.md`](backend/docs/deployment.md) | Deploy / scale / rollback |
 | [`backend/docs/security.md`](backend/docs/security.md) | Headers, CORS, auth, secrets |

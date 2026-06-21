@@ -15,11 +15,13 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app import __version__
 from app.api.articles import router as articles_router
+from app.api.auth import router as auth_router
 from app.api.facts import router as facts_router
 from app.api.health import router as health_router
 from app.api.newsletters import router as newsletters_router
 from app.api.publishing import publications_router, publish_router
 from app.api.reviews import router as reviews_router
+from app.api.settings import router as settings_router
 from app.api.sources import router as sources_router
 from app.api.subscribers import router as subscribers_router
 from app.api.v1.router import api_router
@@ -48,6 +50,17 @@ async def lifespan(_: FastAPI):
         version=__version__,
         environment=settings.APP_ENV,
     )
+    # Load any UI-managed configuration persisted in the database over the
+    # environment defaults so agents pick up keys/flags set via the UI.
+    try:
+        from app.db.session import AsyncSessionLocal
+        from app.services.runtime_config import load_into_settings
+
+        async with AsyncSessionLocal() as session:
+            await load_into_settings(session)
+    except Exception as exc:  # pragma: no cover - never block startup on config load
+        logger.warning("runtime_config_load_failed", error=str(exc))
+
     if settings.ENABLE_SCHEDULER:
         from app.agents.source_collection.scheduler import scheduler
 
@@ -103,6 +116,8 @@ def create_app() -> FastAPI:
     # Routers
     app.include_router(health_router)
     app.include_router(api_router, prefix=settings.API_V1_PREFIX)
+    app.include_router(auth_router, prefix="/api/auth")
+    app.include_router(settings_router, prefix="/api/settings")
     app.include_router(workflows_router, prefix="/api/workflows")
     app.include_router(sources_router, prefix="/api/sources")
     app.include_router(articles_router, prefix="/api/articles")
