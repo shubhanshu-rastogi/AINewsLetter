@@ -167,7 +167,9 @@ the platform — no `curl` required. It lets you:
   as the run moves through each agent.
 - **Review & decide** when a run pauses: approve & publish, request changes
   (feedback regenerates the draft), or reject.
-- **Browse history** of every run and its outcome.
+- **Browse history** of every run and its outcome, with a one-click link to each
+  issue's **shareable web page** (`GET /api/newsletters/{id}/html`) — works even
+  in offline/simulated mode.
 - **Set API keys, models, and feature flags from the UI** (Settings) — secrets
   are encrypted at rest in the database, so you never touch `.env` to go live.
 
@@ -356,7 +358,7 @@ publishing is on, and `REDIS_URL` when Redis is on.
 | `/api/sources` | Curated source registry |
 | `/api/articles` | Collected & scored articles |
 | `/api/facts` | Fact-check results |
-| `/api/newsletters` | Newsletter issues & drafts |
+| `/api/newsletters` | Newsletter issues & drafts; `{id}/html` = shareable web page |
 | `/api/visuals` | Cover / carousel generation & retrieval |
 | `/api/reviews` | Human review sessions & feedback |
 | `/api/publish` 🔒 | Publishing actions (Beehiiv / LinkedIn / email) |

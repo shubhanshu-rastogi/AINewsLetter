@@ -5,6 +5,7 @@ from __future__ import annotations
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import HTMLResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -28,6 +29,7 @@ from app.schemas.writer import (
     NewsletterVersionRead,
     RegenerateRequest,
 )
+from app.services.newsletter_html import render_newsletter_html
 from app.services.newsletter_stats import get_newsletter_stats
 
 router = APIRouter(tags=["newsletters"])
@@ -77,6 +79,18 @@ async def regenerate(newsletter_id: uuid.UUID, payload: RegenerateRequest) -> di
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     except AttributeError as exc:  # no draft yet
         raise HTTPException(status_code=404, detail="Newsletter draft not found.") from exc
+
+
+@router.get("/{newsletter_id}/html", response_class=HTMLResponse)
+async def newsletter_html(
+    newsletter_id: uuid.UUID, session: AsyncSession = Depends(get_session)
+) -> HTMLResponse:
+    """Render this issue as a self-contained, shareable HTML web page."""
+    nl = await session.get(Newsletter, newsletter_id)
+    if nl is None:
+        raise HTTPException(status_code=404, detail="Newsletter not found.")
+    draft = await session.scalar(select(NewsletterDraft).where(NewsletterDraft.newsletter_id == newsletter_id))
+    return HTMLResponse(render_newsletter_html(nl, draft.content if draft else None))
 
 
 @router.get("/{newsletter_id}", response_model=NewsletterDraftRead)

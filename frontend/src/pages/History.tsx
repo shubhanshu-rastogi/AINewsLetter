@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ApiError, RunListItem, Workflows } from "../api";
+import { ApiError, Newsletters, RunListItem, Workflows } from "../api";
 import { RunBadge } from "../components/RunState";
 
 export default function History() {
@@ -49,6 +49,7 @@ export default function History() {
                 <th>Newsletter</th>
                 <th>Created</th>
                 <th>Finished</th>
+                <th>Web page</th>
                 <th />
               </tr>
             </thead>
@@ -63,6 +64,15 @@ export default function History() {
                   <td className="muted">{r.newsletter_status ?? "—"}</td>
                   <td className="faint">{fmt(r.created_at)}</td>
                   <td className="faint">{fmt(r.finished_at)}</td>
+                  <td>
+                    {r.newsletter_id ? (
+                      <a href={Newsletters.htmlUrl(r.newsletter_id)} target="_blank" rel="noopener noreferrer">
+                        Open ↗
+                      </a>
+                    ) : (
+                      <span className="faint">—</span>
+                    )}
+                  </td>
                   <td>
                     <button className="btn btn-ghost btn-sm" onClick={() => nav(`/runs/${r.workflow_run_id}`)}>
                       View

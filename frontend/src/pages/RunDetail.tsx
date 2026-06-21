@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ApiError, Newsletters, WorkflowStatus, Workflows } from "../api";
+// Newsletters.htmlUrl provides the shareable web-page link.
 import { ProgressBar, RunBadge, Stepper } from "../components/RunState";
 import DraftPreview from "../components/DraftPreview";
 
@@ -185,7 +186,20 @@ export default function RunDetail() {
 
       {draft && (
         <div className="card">
-          <h2>Draft preview</h2>
+          <div className="row" style={{ marginBottom: 8 }}>
+            <h2 style={{ margin: 0 }}>Draft preview</h2>
+            <div className="spacer" />
+            {status.newsletter_id && (
+              <a
+                className="btn btn-sm"
+                href={Newsletters.htmlUrl(status.newsletter_id)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                View web page ↗
+              </a>
+            )}
+          </div>
           <DraftPreview content={draft} />
         </div>
       )}

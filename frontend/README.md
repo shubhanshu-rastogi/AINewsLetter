@@ -10,7 +10,8 @@ newsletter platform. It talks to the FastAPI backend over REST.
   the run moves through collection → … → human review → publish (Run detail).
 - **Review & decide** when a run pauses: approve & publish, request changes
   (with feedback that regenerates the draft), or reject.
-- **Browse history** of every run and its outcome.
+- **Browse history** of every run and its outcome, with an "Open ↗" link to each
+  issue's self-hosted **web page** (rendered HTML, shareable).
 - **Manage configuration** from the UI (Settings): API keys (OpenAI / Anthropic /
   Beehiiv / LinkedIn / Notion), model names, and feature flags. Secrets are
   encrypted at rest by the backend and never shown again.

@@ -151,6 +151,8 @@ export const Settings = {
 
 export const Newsletters = {
   get: (id: string) => api.get<NewsletterDraft>(`/api/newsletters/${id}`),
+  // Public, shareable HTML page for an issue (opens in a new tab).
+  htmlUrl: (id: string) => `${BASE}/api/newsletters/${id}/html`,
 };
 
 export const Sources = {
